@@ -63,7 +63,7 @@ width_mult_list: [0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4, 0.425, 0.45, 0.475,
 width_mult_range: [0.25, 1.0]
 data_transforms: imagenet1k_mobile
 num_gpus_per_job: 8
-batch_size: 1024
+batch_size: 64
 lr: 0.5
 lr_scheduler: linear_decaying
 num_epochs: 250
