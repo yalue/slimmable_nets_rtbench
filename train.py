@@ -167,77 +167,55 @@ def get_meters(phase):
     return meters
 
 
-def forward_loss(
-        model, criterion, input, target, meter, soft_target=None,
-        soft_criterion=None, return_soft_target=False, return_acc=False):
-    """forward model and return loss"""
+def forward_loss(model, input, target):
+    """ Forward model and return the number of top-k correct results. """
     output = model(input)
-    if soft_target is not None:
-        loss = torch.mean(soft_criterion(output, soft_target))
-    else:
-        loss = torch.mean(criterion(output, target))
     # topk
     _, pred = output.topk(max(FLAGS.topk))
     pred = pred.t()
     correct = pred.eq(target.view(1, -1).expand_as(pred))
     correct_k = []
     for k in FLAGS.topk:
-        correct_k.append(correct[:k].float().sum(0))
-    tensor = torch.cat([loss.view(1)] + correct_k, dim=0)
-    # allreduce
-    tensor = dist_all_reduce_tensor(tensor)
-    # cache to meter
-    tensor = tensor.cpu().detach().numpy()
-    bs = (tensor.size-1)//2
-    for i, k in enumerate(FLAGS.topk):
-        error_list = list(1.-tensor[1+i*bs:1+(i+1)*bs])
-        if return_acc and k == 1:
-            top1_error = sum(error_list) / len(error_list)
-            return loss, top1_error
-        if meter is not None:
-            meter['top{}_error'.format(k)].cache_list(error_list)
-    if meter is not None:
-        meter['loss'].cache(tensor[0])
-    if return_soft_target:
-        return loss, torch.nn.functional.softmax(output, dim=1)
-    return loss
+        correct_k.append(float(correct[:k].float().sum()))
+    return correct_k
 
-
-def run_one_epoch(
-        loader, model, criterion, meters, phase='train',
-        soft_criterion=None):
+def run_one_epoch(loader, model, width_mult):
     """run one epoch for train/val/test/cal"""
-    t_start = time.time()
-    assert phase in ['val', 'test'], 'Invalid phase.'
     model.eval()
-    total_batches = 0
+    t_start = time.time()
 
+    total_batches = 0
+    total_processed = 0
+    total_correct_k = []
+    for k in FLAGS.topk:
+        total_correct_k.append(0.0)
+
+    # TODO (next): Continue making this more efficient (esp. w.r.t. keeping
+    # track of # correct.) Also remove more unused code, now that criterion-
+    # related stuff has been removed.
     for batch_idx, (input, target) in enumerate(loader):
+        total_processed += FLAGS.batch_size
         print("Running batch %d / 5" % (total_batches + 1,))
         target = target.cuda(non_blocking=True)
-        # TODO (next): Don't set width_mult here, since it is set in train_val_test
-        for width_mult in sorted(FLAGS.width_mult_list, reverse=True):
-            model.apply(
-                lambda m: setattr(m, 'width_mult', width_mult))
-            if is_master():
-                meter = meters[str(width_mult)]
-            else:
-                meter = None
-            forward_loss(model, criterion, input, target, meter)
+        correct = forward_loss(model, input, target)
+        for i in range(len(FLAGS.topk)):
+            total_correct_k[i] += correct[i]
         total_batches += 1
         if total_batches >= 5:
             break
 
-    if is_master() and getattr(FLAGS, 'slimmable_training', False):
-        for width_mult in sorted(FLAGS.width_mult_list, reverse=True):
-            results = flush_scalar_meters(meters[str(width_mult)])
-            print('{:.1f}s\t{}\t{}: '.format(time.time() - t_start, phase,
-                str(width_mult)) +
-                ', '.join('{}: {:.3f}'.format(
-                    k, v) for k, v in results.items()))
-    else:
-        results = None
-    return results
+    topk_correct_string = ""
+    for i in range(len(FLAGS.topk)):
+        k = FLAGS.topk[i]
+        correct_rate = total_correct_k[i] / float(total_processed)
+        topk_correct_string += "top_%d: %.03f" % (k, correct_rate)
+        if i == (len(FLAGS.topk) - 1):
+            break
+        topk_correct_string += ", "
+    print("%.03fs, width_mult %.04f: %s" % (time.time() - t_start,
+        width_mult, topk_correct_string))
+
+    return True
 
 
 def get_conv_layers(m):
@@ -298,14 +276,10 @@ def train_val_test():
     print('Start testing.')
     test_meters = get_meters('test')
     with torch.no_grad():
-        # TODO: This is stupid for testing, this width_mult is ignored in
-        # run_one_epoch.
         for width_mult in sorted(FLAGS.width_mult_list, reverse=True):
             model_wrapper.apply(
                 lambda m: setattr(m, 'width_mult', width_mult))
-            run_one_epoch(
-                val_loader, model_wrapper, criterion,
-                test_meters, phase='test')
+            run_one_epoch(val_loader, model_wrapper, width_mult)
     return
 
 
