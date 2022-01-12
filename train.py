@@ -9,7 +9,6 @@ from torch import multiprocessing
 from torchvision import datasets, transforms
 import numpy as np
 
-#from utils.config import FLAGS
 from config import FLAGS
 
 def get_model():
@@ -21,42 +20,16 @@ def get_model():
 
 def data_transforms():
     """get transform of dataset"""
-    if FLAGS.data_transforms in [
-            'imagenet1k_basic', 'imagenet1k_inception', 'imagenet1k_mobile']:
-        if FLAGS.data_transforms == 'imagenet1k_inception':
-            mean = [0.5, 0.5, 0.5]
-            std = [0.5, 0.5, 0.5]
-            crop_scale = 0.08
-            jitter_param = 0.4
-            lighting_param = 0.1
-        elif FLAGS.data_transforms == 'imagenet1k_basic':
-            mean = [0.485, 0.456, 0.406]
-            std = [0.229, 0.224, 0.225]
-            crop_scale = 0.08
-            jitter_param = 0.4
-            lighting_param = 0.1
-        elif FLAGS.data_transforms == 'imagenet1k_mobile':
-            mean = [0.485, 0.456, 0.406]
-            std = [0.229, 0.224, 0.225]
-            crop_scale = 0.25
-            jitter_param = 0.4
-            lighting_param = 0.1
-        val_transforms = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=mean, std=std),
-        ])
-        test_transforms = val_transforms
-    else:
-        try:
-            transforms_lib = importlib.import_module(FLAGS.data_transforms)
-            return transforms_lib.data_transforms()
-        except ImportError:
-            raise NotImplementedError(
-                'Data transform {} is not yet implemented.'.format(
-                    FLAGS.data_transforms))
-    return None, val_transforms, test_transforms
+    assert(FLAGS.data_transforms == "imagenet1k_mobile")
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    val_transforms = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=mean, std=std),
+    ])
+    return val_transforms
 
 
 def data_loader(val_set):
@@ -71,34 +44,6 @@ def data_loader(val_set):
         num_workers=1,
         drop_last=getattr(FLAGS, 'drop_last', False))
     return val_loader
-
-def get_optimizer(model):
-    """get optimizer"""
-    if FLAGS.optimizer == 'sgd':
-        # all depthwise convolution (N, 1, x, x) has no weight decay
-        # weight decay only on normal conv and fc
-        model_params = []
-        for params in model.parameters():
-            ps = list(params.size())
-            if len(ps) == 4 and ps[1] != 1:
-                weight_decay = FLAGS.weight_decay
-            elif len(ps) == 2:
-                weight_decay = FLAGS.weight_decay
-            else:
-                weight_decay = 0
-            item = {'params': params, 'weight_decay': weight_decay,
-                    'lr': FLAGS.lr, 'momentum': FLAGS.momentum,
-                    'nesterov': FLAGS.nesterov}
-            model_params.append(item)
-        optimizer = torch.optim.SGD(model_params)
-    else:
-        try:
-            optimizer_lib = importlib.import_module(FLAGS.optimizer)
-            return optimizer_lib.get_optimizer(model)
-        except ImportError:
-            raise NotImplementedError(
-                'Optimizer {} is not yet implemented.'.format(FLAGS.optimizer))
-    return optimizer
 
 
 def set_random_seed(seed=None):
@@ -163,18 +108,6 @@ def run_one_epoch(loader, model, width_mult):
     return True
 
 
-def get_conv_layers(m):
-    layers = []
-    if (isinstance(m, torch.nn.Conv2d) and hasattr(m, 'width_mult') and
-            getattr(m, 'us', [False, False])[1] and
-            not getattr(m, 'depthwise', False) and
-            not getattr(m, 'linked', False)):
-        layers.append(m)
-    for child in m.children():
-        layers += get_conv_layers(child)
-    return layers
-
-
 def train_val_test():
     """train and val"""
     torch.backends.cudnn.benchmark = True
@@ -195,19 +128,13 @@ def train_val_test():
         soft_criterion = None
 
     # Load pretrained weights.
+    assert(getattr(FLAGS, 'pretrained', "") != "")
     checkpoint = torch.load(FLAGS.pretrained, map_location=lambda storage,
         loc: storage)
     # update keys from external models
     if type(checkpoint) == dict and 'model' in checkpoint:
         checkpoint = checkpoint['model']
-    if getattr(FLAGS, 'pretrained_model_remap_keys', False):
-        new_checkpoint = {}
-        new_keys = list(model_wrapper.state_dict().keys())
-        old_keys = list(checkpoint.keys())
-        for key_new, key_old in zip(new_keys, old_keys):
-            new_checkpoint[key_new] = checkpoint[key_old]
-            print('remap {} to {}'.format(key_new, key_old))
-        checkpoint = new_checkpoint
+    assert(not getattr(FLAGS, 'pretrained_model_remap_keys', False))
     model_wrapper.load_state_dict(checkpoint)
     print('Loaded model {}.'.format(FLAGS.pretrained))
 
@@ -215,7 +142,7 @@ def train_val_test():
     print(model_wrapper)
 
     # data
-    train_transforms, val_transforms, test_transforms = data_transforms()
+    val_transforms = data_transforms()
     val_set = datasets.ImageFolder(os.path.join(FLAGS.dataset_dir, 'val'),
         transform=val_transforms)
     val_loader = data_loader(val_set)
@@ -230,30 +157,11 @@ def train_val_test():
 
 
 def init_multiprocessing():
-    # print(multiprocessing.get_start_method())
     try:
         multiprocessing.set_start_method('fork')
     except RuntimeError:
         pass
 
-
-def validate_flags():
-    """ Asserts that a few flags are sane before doing anything else. """
-    # TODO: Remove some of these asserts after all references to the config
-    # fields have been removed.
-    # We only support the imagenet1k dataset.
-    assert(FLAGS.dataset == 'imagenet1k')
-    assert(FLAGS.data_loader == 'imagenet1k_basic')
-    # We require testing only.
-    assert(gettattr(FLAGS, 'pretrained', "") != "")
-    assert(FLAGS.test_only)
-    # We only support a single GPU.
-    assert(FLAGS.num_gpus_per_job == 1)
-    # We don't support autoslim.
-    assert(getattr(FLAGS, 'autoslim', False) == False)
-    # We only support universally slimmable
-    assert(FLAGS.universally_slimmable_training)
-    assert(FLAGS.slimmable_training)
 
 def main():
     """train and eval model"""
@@ -263,3 +171,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
