@@ -9,7 +9,6 @@ from torch import multiprocessing
 from torchvision import datasets, transforms
 import numpy as np
 
-from utils.loss_ops import CrossEntropyLossSoft, CrossEntropyLossSmooth
 from models.slimmable_ops import bn_calibration_init
 from utils.config import FLAGS
 from utils.meters import ScalarMeter, flush_scalar_meters
@@ -212,11 +211,13 @@ def train_val_test():
     # model
     model, model_wrapper = get_model()
     if getattr(FLAGS, 'label_smoothing', 0):
-        criterion = CrossEntropyLossSmooth(reduction='none')
+        print("label_smoothing setting isn't supported")
+        exit()
     else:
         criterion = torch.nn.CrossEntropyLoss(reduction='none')
     if getattr(FLAGS, 'inplace_distill', False):
-        soft_criterion = CrossEntropyLossSoft(reduction='none')
+        print("inplace_distill isn't supported")
+        exit()
     else:
         soft_criterion = None
 
