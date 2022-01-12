@@ -1,9 +1,8 @@
 import math
 import torch.nn as nn
 
-
-from .slimmable_ops import USBatchNorm2d, USConv2d, USLinear, make_divisible
-from utils.config import FLAGS
+from slimmable_ops import USBatchNorm2d, USConv2d, USLinear, make_divisible
+from config import FLAGS
 
 
 class DepthwiseSeparableConv(nn.Module):

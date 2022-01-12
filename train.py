@@ -9,8 +9,8 @@ from torch import multiprocessing
 from torchvision import datasets, transforms
 import numpy as np
 
-from models.slimmable_ops import bn_calibration_init
-from utils.config import FLAGS
+#from utils.config import FLAGS
+from config import FLAGS
 
 def get_model():
     """get model"""

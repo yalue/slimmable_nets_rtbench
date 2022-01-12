@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 
-from utils.config import FLAGS
+from config import FLAGS
 
 
 class SwitchableBatchNorm2d(nn.Module):
