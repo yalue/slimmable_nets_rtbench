@@ -11,8 +11,6 @@ import numpy as np
 
 from models.slimmable_ops import bn_calibration_init
 from utils.config import FLAGS
-from utils.meters import ScalarMeter, flush_scalar_meters
-
 
 def get_model():
     """get model"""
@@ -20,7 +18,6 @@ def get_model():
     model = model_lib.Model(FLAGS.num_classes, input_size=FLAGS.image_size)
     model_wrapper = torch.nn.DataParallel(model).cuda()
     return model, model_wrapper
-
 
 def data_transforms():
     """get transform of dataset"""
@@ -113,30 +110,6 @@ def set_random_seed(seed=None):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-
-
-def get_meters(phase):
-    """util function for meters"""
-    def get_single_meter(phase, suffix=''):
-        meters = {}
-        meters['loss'] = ScalarMeter('{}_loss/{}'.format(phase, suffix))
-        for k in FLAGS.topk:
-            meters['top{}_error'.format(k)] = ScalarMeter(
-                '{}_top{}_error/{}'.format(phase, k, suffix))
-        if phase == 'train':
-            meters['lr'] = ScalarMeter('learning_rate')
-        return meters
-
-    assert phase in ['train', 'val', 'test', 'cal'], 'Invalid phase.'
-    if getattr(FLAGS, 'slimmable_training', False):
-        meters = {}
-        for width_mult in FLAGS.width_mult_list:
-            meters[str(width_mult)] = get_single_meter(phase, str(width_mult))
-    else:
-        meters = get_single_meter(phase)
-    if phase == 'val':
-        meters['best_val'] = ScalarMeter('best_val')
-    return meters
 
 
 def forward_loss(model, input, target):
@@ -248,7 +221,6 @@ def train_val_test():
     val_loader = data_loader(val_set)
 
     print('Start testing.')
-    test_meters = get_meters('test')
     with torch.no_grad():
         for width_mult in sorted(FLAGS.width_mult_list, reverse=True):
             model_wrapper.apply(
