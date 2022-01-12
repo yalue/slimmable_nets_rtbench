@@ -9,13 +9,6 @@ from torch import multiprocessing
 from torchvision import datasets, transforms
 import numpy as np
 
-from utils.model_profiling import model_profiling
-from utils.transforms import Lighting
-from utils.distributed import init_dist, master_only, is_master
-from utils.distributed import get_rank
-from utils.distributed import dist_all_reduce_tensor
-from utils.distributed import master_only_print as print
-from utils.distributed import AllReduceDistributedDataParallel, allreduce_grads
 from utils.loss_ops import CrossEntropyLossSoft, CrossEntropyLossSmooth
 from models.slimmable_ops import bn_calibration_init
 from utils.config import FLAGS
@@ -26,16 +19,7 @@ def get_model():
     """get model"""
     model_lib = importlib.import_module(FLAGS.model)
     model = model_lib.Model(FLAGS.num_classes, input_size=FLAGS.image_size)
-    if getattr(FLAGS, 'distributed', False):
-        gpu_id = init_dist()
-        if getattr(FLAGS, 'distributed_all_reduce', False):
-            # seems faster
-            model_wrapper = AllReduceDistributedDataParallel(model.cuda())
-        else:
-            model_wrapper = torch.nn.parallel.DistributedDataParallel(
-                model.cuda(), [gpu_id], gpu_id)
-    else:
-        model_wrapper = torch.nn.DataParallel(model).cuda()
+    model_wrapper = torch.nn.DataParallel(model).cuda()
     return model, model_wrapper
 
 
@@ -61,16 +45,6 @@ def data_transforms():
             crop_scale = 0.25
             jitter_param = 0.4
             lighting_param = 0.1
-        train_transforms = transforms.Compose([
-            transforms.RandomResizedCrop(224, scale=(crop_scale, 1.0)),
-            transforms.ColorJitter(
-                brightness=jitter_param, contrast=jitter_param,
-                saturation=jitter_param),
-            Lighting(lighting_param),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=mean, std=std),
-        ])
         val_transforms = transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
@@ -86,7 +60,7 @@ def data_transforms():
             raise NotImplementedError(
                 'Data transform {} is not yet implemented.'.format(
                     FLAGS.data_transforms))
-    return train_transforms, val_transforms, test_transforms
+    return None, val_transforms, test_transforms
 
 
 def data_loader(val_set):
@@ -142,7 +116,6 @@ def set_random_seed(seed=None):
     torch.cuda.manual_seed_all(seed)
 
 
-@master_only
 def get_meters(phase):
     """util function for meters"""
     def get_single_meter(phase, suffix=''):
