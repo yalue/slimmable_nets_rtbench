@@ -1,3 +1,4 @@
+import argparse
 import importlib
 import os
 import time
@@ -10,6 +11,7 @@ from torchvision import datasets, transforms
 import numpy as np
 
 from config import FLAGS
+from data_utils import PreloadDataset
 
 def get_model():
     """get model"""
@@ -35,13 +37,14 @@ def data_transforms():
 def data_loader(val_set):
     """get data loader"""
     batch_size = int(FLAGS.batch_size)
+    is_cpu = str(val_set.get_device()) == "cpu"
     val_loader = torch.utils.data.DataLoader(
         val_set,
         batch_size=batch_size,
         shuffle=False,
         sampler=None,
-        pin_memory=True,
-        num_workers=1,
+        pin_memory=is_cpu,
+        num_workers=0,
         drop_last=getattr(FLAGS, 'drop_last', False))
     return val_loader
 
@@ -86,6 +89,7 @@ def run_one_epoch(loader, model, width_mult):
     for batch_idx, (input, target) in enumerate(loader):
         total_processed += FLAGS.batch_size
         print("Running batch %d / 5" % (total_batches + 1,))
+        input = input.cuda(non_blocking=True)
         target = target.cuda(non_blocking=True)
         correct = forward_loss(model, input, target)
         for i in range(len(FLAGS.topk)):
@@ -145,6 +149,7 @@ def train_val_test():
     val_transforms = data_transforms()
     val_set = datasets.ImageFolder(os.path.join(FLAGS.dataset_dir, 'val'),
         transform=val_transforms)
+    val_set = PreloadDataset(val_set, 1000, torch.device("cuda"))
     val_loader = data_loader(val_set)
 
     print('Start testing.')
@@ -164,7 +169,16 @@ def init_multiprocessing():
 
 
 def main():
-    """train and eval model"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--batch_size", help="The batch size to use.",
+        type=int, default=64)
+    parser.add_argument("--width_mult", type=float, default=1.0,
+        help="The neural network width to use. 1.0 = full width.")
+    parser.add_argument("--output_file", default="", help="The name of a " +
+        "JSON file to which results will be written.")
+    parser.add_argument("--data_limit", default=1000, type=int,
+        help="Limit on the number of data samples to load.")
+    # TODO (next, 2): Use the data_limit argument here.
     init_multiprocessing()
     train_val_test()
 
