@@ -45,8 +45,6 @@ class PreloadDataset(torch.utils.data.Dataset):
         self.result_tensor = self.result_tensor.to(device)
         self.input_tensor = self.input_tensor.to(device)
         print("Preloading data: done. Took %f seconds." % (time.perf_counter() - tmp,))
-
-        #print(str(torch.cuda.memory_summary()))
         return
 
     def __getitem__(self, index):
@@ -58,4 +56,31 @@ class PreloadDataset(torch.utils.data.Dataset):
     def get_device(self):
         return self.device
 
-# TODO (next): Add the SimpleLoader code here too.
+
+class SimpleLoader(object):
+    """ This class replaces PyTorch's loader, and simply wraps our
+    PreloadDataset to return subsequent slices. Always drops an unevenly sized
+    last batch, and doesn't shuffle the data. """
+
+    def __init__(self, dataset, batch_size):
+        """ Expects a PreloadDataset. """
+        self.dataset = dataset
+        self.current_index = 0
+        self.batch_size = batch_size
+
+    def __next__(self):
+        if (self.current_index + self.batch_size) >= len(self.dataset):
+            raise StopIteration
+        i = self.current_index
+        data_slice = self.dataset.input_tensor[i : (i + self.batch_size)]
+        result_slice = self.dataset.result_tensor[i : (i + self.batch_size)]
+        self.current_index += self.batch_size
+        return (data_slice, result_slice)
+
+    def __iter__(self):
+        self.current_index = 0
+        return self
+
+    def __len__(self):
+        return int(int(len(self.dataset)) / int(self.batch_size))
+

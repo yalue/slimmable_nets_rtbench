@@ -11,7 +11,7 @@ from torchvision import datasets, transforms
 import numpy as np
 
 from config import FLAGS
-from data_utils import PreloadDataset
+from data_utils import PreloadDataset, SimpleLoader
 
 def get_model():
     """get model"""
@@ -38,14 +38,7 @@ def data_loader(val_set):
     """get data loader"""
     batch_size = int(FLAGS.batch_size)
     is_cpu = str(val_set.get_device()) == "cpu"
-    val_loader = torch.utils.data.DataLoader(
-        val_set,
-        batch_size=batch_size,
-        shuffle=False,
-        sampler=None,
-        pin_memory=is_cpu,
-        num_workers=0,
-        drop_last=getattr(FLAGS, 'drop_last', False))
+    val_loader = SimpleLoader(val_set, batch_size)
     return val_loader
 
 
@@ -72,64 +65,80 @@ def forward_loss(model, input, target):
         correct_k.append(float(correct[:k].float().sum()))
     return correct_k
 
-def run_one_epoch(loader, model, width_mult):
-    """run one epoch for train/val/test/cal"""
+def run_test(loader, model, args):
+    """ Runs the number of batches specified in the args. Returns a tuple:
+        ([correct_k values], total_processed). """
     model.eval()
-    t_start = time.time()
 
-    total_batches = 0
+    jobs_completed = 0
     total_processed = 0
     total_correct_k = []
+    job_times = np.full((args.job_count,), 100.0)
     for k in FLAGS.topk:
         total_correct_k.append(0.0)
 
-    # TODO (next): Continue making this more efficient (esp. w.r.t. keeping
-    # track of # correct.) Also remove more unused code, now that criterion-
-    # related stuff has been removed.
+    # Run two batches as a warmup
+    for batch_idx, (input, target) in enumerate(loader):
+        time_1 = time.perf_counter()
+        print("Running warmup batch %d" % (batch_idx + 1,))
+        correct = forward_loss(model, input, target)
+        time_2 = time.perf_counter()
+        print("Running warmup batch %d took %f seconds" % (batch_idx + 1,
+            time_2 - time_1))
+        if batch_idx >= 1:
+            break
+    print("Warmup done")
+
+    start_time = time.perf_counter()
+    # TODO: Several things
+    #  - Make this work even if there are fewer batches than jobs. Maybe make
+    #    the loader always return a number of batches equal to the number of
+    #    jobs?
+    #  - Use a stream.
+    #  - Check and update correctness after each batch.
     for batch_idx, (input, target) in enumerate(loader):
         total_processed += FLAGS.batch_size
-        print("Running batch %d / 5" % (total_batches + 1,))
+        print("Running job %d / %d" % (jobs_completed + 1, args.job_count))
+        job_start_time = time.perf_counter()
         input = input.cuda(non_blocking=True)
         target = target.cuda(non_blocking=True)
         correct = forward_loss(model, input, target)
         for i in range(len(FLAGS.topk)):
             total_correct_k[i] += correct[i]
-        total_batches += 1
-        if total_batches >= 5:
+        job_end_time = time.perf_counter()
+        job_times[jobs_completed] = job_end_time - job_start_time
+        jobs_completed += 1
+        elapsed = job_end_time - start_time
+        if (args.time_limit > 0) and (elapsed > args.time_limit):
+            print("Time limit exceeded.")
+            break
+        if jobs_completed >= args.job_count:
+            print("All jobs completed.")
             break
 
-    topk_correct_string = ""
+    return (total_correct_k, total_processed)
+
+def correct_k_string(results):
+    """ Takes the results returned by run_test and returns the top-k
+    correctness formatted as a human-readable string. """
+    to_return = ""
     for i in range(len(FLAGS.topk)):
         k = FLAGS.topk[i]
-        correct_rate = total_correct_k[i] / float(total_processed)
-        topk_correct_string += "top_%d: %.03f" % (k, correct_rate)
-        if i == (len(FLAGS.topk) - 1):
-            break
-        topk_correct_string += ", "
-    print("%.03fs, width_mult %.04f: %s" % (time.time() - t_start,
-        width_mult, topk_correct_string))
+        correct_rate = results[0][i] / float(results[1])
+        to_return += "top_%d: %.03f" % (k, correct_rate)
+        if i < (len(FLAGS.topk) - 1):
+            to_return += ","
+    return to_return
 
-    return True
-
-
-def train_val_test():
-    """train and val"""
+def train_val_test(args):
+    assert(not getattr(FLAGS, 'label_smoothing', False))
+    assert(not getattr(FLAGS, 'inplace_distill', False))
+    assert(not getattr(FLAGS, 'pretrained_model_remap_keys', False))
+    assert(args.width_mult in FLAGS.width_mult_list)
     torch.backends.cudnn.benchmark = True
-    # seed
     set_random_seed()
-
-    # model
     model, model_wrapper = get_model()
-    if getattr(FLAGS, 'label_smoothing', 0):
-        print("label_smoothing setting isn't supported")
-        exit()
-    else:
-        criterion = torch.nn.CrossEntropyLoss(reduction='none')
-    if getattr(FLAGS, 'inplace_distill', False):
-        print("inplace_distill isn't supported")
-        exit()
-    else:
-        soft_criterion = None
+    criterion = torch.nn.CrossEntropyLoss(reduction='none')
 
     # Load pretrained weights.
     assert(getattr(FLAGS, 'pretrained', "") != "")
@@ -138,27 +147,27 @@ def train_val_test():
     # update keys from external models
     if type(checkpoint) == dict and 'model' in checkpoint:
         checkpoint = checkpoint['model']
-    assert(not getattr(FLAGS, 'pretrained_model_remap_keys', False))
     model_wrapper.load_state_dict(checkpoint)
     print('Loaded model {}.'.format(FLAGS.pretrained))
-
-    # if start from scratch, print model and do profiling
-    print(model_wrapper)
 
     # data
     val_transforms = data_transforms()
     val_set = datasets.ImageFolder(os.path.join(FLAGS.dataset_dir, 'val'),
         transform=val_transforms)
-    val_set = PreloadDataset(val_set, 1000, torch.device("cuda"))
+    val_set = PreloadDataset(val_set, args.data_limit, torch.device("cuda"))
     val_loader = data_loader(val_set)
+    print(torch.cuda.memory_summary(device="cuda:0"))
 
-    print('Start testing.')
+    print("Running test using width mult %f" % (args.width_mult,))
     with torch.no_grad():
-        for width_mult in sorted(FLAGS.width_mult_list, reverse=True):
-            model_wrapper.apply(
-                lambda m: setattr(m, 'width_mult', width_mult))
-            run_one_epoch(val_loader, model_wrapper, width_mult)
-    return
+        model_wrapper.apply(lambda m: setattr(m, "width_mult", args.width_mult))
+        start_time = time.perf_counter()
+        results = run_test(val_loader, model_wrapper, args)
+        end_time = time.perf_counter()
+        topk_string = correct_k_string(results)
+        print("Width mult %.04f took %.03fs. %s" % (args.width_mult,
+            end_time - start_time, topk_string))
+    return None
 
 
 def init_multiprocessing():
@@ -172,16 +181,20 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", help="The batch size to use.",
         type=int, default=64)
+    parser.add_argument("--job_count", help="The number of jobs to launch.",
+        type=int, default=100)
+    parser.add_argument("--time_limit", type=float, default=-1,
+        help="A limit on the number of seconds to run. Negative = unlimited.")
     parser.add_argument("--width_mult", type=float, default=1.0,
         help="The neural network width to use. 1.0 = full width.")
     parser.add_argument("--output_file", default="", help="The name of a " +
         "JSON file to which results will be written.")
     parser.add_argument("--data_limit", default=1000, type=int,
         help="Limit on the number of data samples to load.")
-    # TODO (next, 2): Use the data_limit argument here.
+    args = parser.parse_args()
+    FLAGS.batch_size = args.batch_size
     init_multiprocessing()
-    train_val_test()
-
+    train_val_test(args)
 
 if __name__ == "__main__":
     main()
