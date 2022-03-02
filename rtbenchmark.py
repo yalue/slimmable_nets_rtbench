@@ -65,6 +65,16 @@ def forward_loss(model, input, target):
         correct_k.append(float(correct[:k].float().sum()))
     return correct_k
 
+def single_job(input, target, model):
+    """ Requires the input batch and target labels, as well as the model to
+    evaluate. Returns an array of correct classifications. The i'th entry of
+    the returned array corresponds to the i'th value in FLAGS.topk. Expects the
+    input and target data to be on the CPU, but the model to be on the GPU. """
+    input = input.cuda(non_blocking = True)
+    target = target.cuda(non_blocking = True)
+    correct = forward_loss(model, input, target)
+    return correct
+
 def run_test(loader, model, args):
     """ Runs the number of batches specified in the args. Returns a tuple:
         ([correct_k values], total_processed). """
@@ -81,7 +91,7 @@ def run_test(loader, model, args):
     for batch_idx, (input, target) in enumerate(loader):
         time_1 = time.perf_counter()
         print("Running warmup batch %d" % (batch_idx + 1,))
-        correct = forward_loss(model, input, target)
+        single_job(input, target, model)
         time_2 = time.perf_counter()
         print("Running warmup batch %d took %f seconds" % (batch_idx + 1,
             time_2 - time_1))
@@ -91,20 +101,30 @@ def run_test(loader, model, args):
 
     start_time = time.perf_counter()
     # TODO: Several things
-    #  - Make this work even if there are fewer batches than jobs. Maybe make
-    #    the loader always return a number of batches equal to the number of
-    #    jobs?
+    #  - Wait for task system release
+    #  - Wait for a job at the end of everything
+    #  - Set cost estimate based on warmup time. (Increase to 4 warmup batches;
+    #    take average of final 3?)
     #  - Use a stream.
-    #  - Check and update correctness after each batch.
-    for batch_idx, (input, target) in enumerate(loader):
+    #  - Check and update correctness after each job.
+    batch_index = 0
+    batch_count = len(loader)
+    batch_enumerator = enumerate(loader)
+    print("Number of available batches: " + str(batch_count))
+    while jobs_completed < args.job_count:
+        # Reset the enumerator if we're out of batches.
+        if batch_index == batch_count:
+            batch_enumerator = enumerate(loader)
+            batch_index = 0
+        batch_index, (input, target) = next(batch_enumerator)
         total_processed += FLAGS.batch_size
         print("Running job %d / %d" % (jobs_completed + 1, args.job_count))
         job_start_time = time.perf_counter()
-        input = input.cuda(non_blocking=True)
-        target = target.cuda(non_blocking=True)
-        correct = forward_loss(model, input, target)
+
+        correct = single_job(input, target, model)
         for i in range(len(FLAGS.topk)):
             total_correct_k[i] += correct[i]
+
         job_end_time = time.perf_counter()
         job_times[jobs_completed] = job_end_time - job_start_time
         jobs_completed += 1
@@ -154,9 +174,8 @@ def train_val_test(args):
     val_transforms = data_transforms()
     val_set = datasets.ImageFolder(os.path.join(FLAGS.dataset_dir, 'val'),
         transform=val_transforms)
-    val_set = PreloadDataset(val_set, args.data_limit, torch.device("cuda"))
+    val_set = PreloadDataset(val_set, args.data_limit, torch.device("cpu"))
     val_loader = data_loader(val_set)
-    print(torch.cuda.memory_summary(device="cuda:0"))
 
     print("Running test using width mult %f" % (args.width_mult,))
     with torch.no_grad():
