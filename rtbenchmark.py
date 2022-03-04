@@ -6,7 +6,7 @@ import random
 import math
 
 import torch
-from torch import multiprocessing
+# TODO: Remove the torchvision import when loading from blob works.
 from torchvision import datasets, transforms
 import numpy as np
 
@@ -20,6 +20,7 @@ def get_model():
     model_wrapper = torch.nn.DataParallel(model).cuda()
     return model, model_wrapper
 
+# TODO: Remove data_transforms when loading from blobs is working.
 def data_transforms():
     """get transform of dataset"""
     assert(FLAGS.data_transforms == "imagenet1k_mobile")
@@ -41,7 +42,8 @@ def data_loader(val_set):
     val_loader = SimpleLoader(val_set, batch_size)
     return val_loader
 
-
+# TODO: Remove set_random_seed if no longer needed. (Our dataset is
+# pre-shuffled)
 def set_random_seed(seed=None):
     """set random seed"""
     if seed is None:
@@ -187,13 +189,6 @@ def train_val_test(args):
         print("Width mult %.04f took %.03fs. %s" % (args.width_mult,
             end_time - start_time, topk_string))
     return None
-
-
-def init_multiprocessing():
-    try:
-        multiprocessing.set_start_method('fork')
-    except RuntimeError:
-        pass
 
 
 def main():

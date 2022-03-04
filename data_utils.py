@@ -1,6 +1,39 @@
 import torch
 import numpy as np
+import gc
 import time
+
+def dump_to_disk(dataset, sample_count, input_data_filename,
+    result_data_filename):
+    """ Selects a random set of samples from across the entire given dataset.
+    Saves the data into flat raw binary blobs with the given filenames. """
+    print("Determining which %d/%d random samples to save to disk." % (
+        sample_count, len(dataset)))
+    # Sample across the entire dataset.
+    shuffled_samples = np.arange(len(dataset))
+    np.random.shuffle(shuffled_samples)
+
+    a, b = dataset[0]
+    data_tensor_shape = torch.Size([sample_count] + list(a.size()))
+    result_tensor = torch.zeros(sample_count, dtype=int)
+    input_tensor = torch.zeros(data_tensor_shape, dtype=a.dtype)
+    print("Reading %d random samples..." % (sample_count,))
+    for i in range(sample_count):
+        input_data, result = dataset[shuffled_samples[i]]
+        input_tensor[i] = input_data
+        result_tensor[i] = result
+    gc.collect()
+    print("Saving data to disk...")
+    tmp = input_tensor.numpy().tobytes()
+    print("Input data size: %d bytes uncompressed." % len(tmp))
+    with open(input_data_filename, "wb") as f:
+        f.write(tmp)
+    tmp = result_tensor.numpy().tobytes()
+    print("Result data size: %d bytes uncompressed." % len(tmp))
+    with open(result_data_filename, "wb") as f:
+        f.write(tmp)
+    print("Saved data to %s and %s." % (input_data_filename,
+        result_data_filename))
 
 class PreloadDataset(torch.utils.data.Dataset):
     """ A dataset class that loads another dataset and buffers it all in
@@ -13,8 +46,9 @@ class PreloadDataset(torch.utils.data.Dataset):
         self.data_count = len(data)
         # 20000 results in ~11 GB usage for ImageNet data.
         #data_limit = 10000
-        data_limit = 1000
         if self.data_count > data_limit:
+            print("Using %d/%d available input data points." % (data_limit,
+                len(data)))
             self.data_count = data_limit
 
         # Shuffle the input data now.
@@ -55,7 +89,6 @@ class PreloadDataset(torch.utils.data.Dataset):
 
     def get_device(self):
         return self.device
-
 
 class SimpleLoader(object):
     """ This class replaces PyTorch's loader, and simply wraps our

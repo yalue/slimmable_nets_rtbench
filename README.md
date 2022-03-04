@@ -63,6 +63,20 @@ They should be installed in the following order:
     This provides the ability to configure Python scripts as real-time tasks,
     run jobs, acquire locks, etc.
 
+ 7. The pre-computed data blobs. This will, in turn, require the imagenet
+    dataset on-disk in the same layout expected by the
+    [original repo](https://github.com/JiahuiYu/slimmable_networks). Once you
+    have the imagenet dataset in the correct layout, change the `dataset_dir`
+    field in `config.py` to point to your dataset location. (On my system,
+    the `dataset_dir` contains three directories: `test`, `train`, and `val`.
+    The `test` directory is full of JPG images, while the other two dirs are
+    full of directories containing JPG images. I'm not sure specifically what
+    is required by the original `slimmable_networks` code responsible for
+    parsing this structure.) Anyway, once you have this directory set up,
+    run `python generate_data_blobs.py` to generate `input_data_raw.bin` and
+    `result_data_raw.bin`. Note that `input_data_raw.bin` is about 6 GB. This
+    entire file is buffered into memory at runtime to simplify loading logic.
+
 After setting up *all* of the above dependencies, you should be able to run
 `rtbenchmark.py` using Python 3. Run `python rtbenchmark.py --help` for usage
 information.
