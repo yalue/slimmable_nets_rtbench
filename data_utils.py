@@ -23,11 +23,16 @@ def dump_to_disk(dataset, sample_count, input_data_filename,
         input_tensor[i] = input_data
         result_tensor[i] = result
     gc.collect()
-    print("Saving data to disk...")
+    print("Saving input data...")
+    print("Input tensor shape: " + str(input_tensor.numpy().shape))
     tmp = input_tensor.numpy().tobytes()
+    print("Input tensor dtype: " + str(input_tensor.numpy().dtype))
     print("Input data size: %d bytes uncompressed." % len(tmp))
     with open(input_data_filename, "wb") as f:
         f.write(tmp)
+    print("Saving result data...")
+    print("Result tensor shape: " + str(result_tensor.numpy().shape))
+    print("Result tensor dtype: " + str(result_tensor.numpy().dtype))
     tmp = result_tensor.numpy().tobytes()
     print("Result data size: %d bytes uncompressed." % len(tmp))
     with open(result_data_filename, "wb") as f:
@@ -90,13 +95,28 @@ class PreloadDataset(torch.utils.data.Dataset):
     def get_device(self):
         return self.device
 
+class BufferDataset(torch.utils.data.Dataset):
+    """ A dataset class that expects all data to be contained in preloaded
+    numpy blobs in CPU memory. """
+
+    def __init__(self, input_array, result_array):
+        self.data_count = input_array.shape[0]
+        self.input_tensor = torch.from_numpy(input_array)
+        self.result_tensor = torch.from_numpy(result_array)
+
+    def __getitem__(self, index):
+        return self.input_tensor[index], self.result_tensor[index]
+
+    def __len__(self):
+        return self.data_count
+
 class SimpleLoader(object):
     """ This class replaces PyTorch's loader, and simply wraps our
     PreloadDataset to return subsequent slices. Always drops an unevenly sized
     last batch, and doesn't shuffle the data. """
 
     def __init__(self, dataset, batch_size):
-        """ Expects a PreloadDataset. """
+        """ Expects a PreloadDataset or BufferDataset. """
         self.dataset = dataset
         self.current_index = 0
         self.batch_size = batch_size

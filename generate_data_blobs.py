@@ -20,7 +20,7 @@ def main():
     val_transforms = data_transforms()
     val_set = datasets.ImageFolder(os.path.join(FLAGS.dataset_dir, 'val'),
         transform=val_transforms)
-    dump_to_disk(val_set, 10000, "input_data_raw.bin", "result_data_raw.bin")
+    dump_to_disk(val_set, 12000, "input_data_raw.bin", "result_data_raw.bin")
 
 if __name__ == "__main__":
     main()

@@ -3,15 +3,13 @@ import importlib
 import os
 import time
 import random
-import math
 
 import torch
-# TODO: Remove the torchvision import when loading from blob works.
-from torchvision import datasets, transforms
 import numpy as np
 
 from config import FLAGS
-from data_utils import PreloadDataset, SimpleLoader
+import data_utils
+import liblitmus_helper as liblitmus
 
 def get_model():
     """get model"""
@@ -20,8 +18,8 @@ def get_model():
     model_wrapper = torch.nn.DataParallel(model).cuda()
     return model, model_wrapper
 
-# TODO: Remove data_transforms when loading from blobs is working.
 def data_transforms():
+    from torchvision import transforms
     """get transform of dataset"""
     assert(FLAGS.data_transforms == "imagenet1k_mobile")
     mean = [0.485, 0.456, 0.406]
@@ -38,8 +36,7 @@ def data_transforms():
 def data_loader(val_set):
     """get data loader"""
     batch_size = int(FLAGS.batch_size)
-    is_cpu = str(val_set.get_device()) == "cpu"
-    val_loader = SimpleLoader(val_set, batch_size)
+    val_loader = data_utils.SimpleLoader(val_set, batch_size)
     return val_loader
 
 # TODO: Remove set_random_seed if no longer needed. (Our dataset is
@@ -100,10 +97,13 @@ def run_test(loader, model, args):
         if batch_idx >= 1:
             break
     print("Warmup done")
+    if args.wait_for_ts_release:
+        print("Waiting to be released.")
+        # TODO (next): Set RT task params and initialize LITMUS if needed.
+        liblitmus.wait_for_ts_release()
 
     start_time = time.perf_counter()
     # TODO: Several things
-    #  - Wait for task system release
     #  - Wait for a job at the end of everything
     #  - Set cost estimate based on warmup time. (Increase to 4 warmup batches;
     #    take average of final 3?)
@@ -152,11 +152,15 @@ def correct_k_string(results):
             to_return += ","
     return to_return
 
-def train_val_test(args):
+def train_val_test(args, input_ndarray=None, result_ndarray=None):
+    """ This takes the command-line args object (or similar), and possibly two
+    numpy ndarrays. If provided, the ndarrays are used in lieu of loading files
+    from disk for the testing dataset. """
     assert(not getattr(FLAGS, 'label_smoothing', False))
     assert(not getattr(FLAGS, 'inplace_distill', False))
     assert(not getattr(FLAGS, 'pretrained_model_remap_keys', False))
     assert(args.width_mult in FLAGS.width_mult_list)
+    FLAGS.batch_size = args.batch_size
     torch.backends.cudnn.benchmark = True
     set_random_seed()
     model, model_wrapper = get_model()
@@ -173,11 +177,19 @@ def train_val_test(args):
     print('Loaded model {}.'.format(FLAGS.pretrained))
 
     # data
-    val_transforms = data_transforms()
-    val_set = datasets.ImageFolder(os.path.join(FLAGS.dataset_dir, 'val'),
-        transform=val_transforms)
-    val_set = PreloadDataset(val_set, args.data_limit, torch.device("cpu"))
-    val_loader = data_loader(val_set)
+    val_loader = None
+    if input_ndarray is None:
+        val_transforms = data_transforms()
+        from torchvision import datasets
+        val_set = datasets.ImageFolder(os.path.join(FLAGS.dataset_dir, 'val'),
+            transform=val_transforms)
+        val_set = data_utils.PreloadDataset(val_set, args.data_limit,
+            torch.device("cpu"))
+        val_loader = data_loader(val_set)
+    else:
+        assert(result_ndarray is not None)
+        val_set = data_utils.BufferDataset(input_ndarray, result_ndarray)
+        val_loader = data_loader(val_set)
 
     print("Running test using width mult %f" % (args.width_mult,))
     with torch.no_grad():
@@ -205,9 +217,9 @@ def main():
         "JSON file to which results will be written.")
     parser.add_argument("--data_limit", default=1000, type=int,
         help="Limit on the number of data samples to load.")
+    parser.add_argument("--wait_for_ts_release", action="store_true",
+        help="If set, wait for LITMUS tasks to be released.")
     args = parser.parse_args()
-    FLAGS.batch_size = args.batch_size
-    init_multiprocessing()
     train_val_test(args)
 
 if __name__ == "__main__":
