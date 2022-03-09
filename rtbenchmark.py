@@ -78,7 +78,7 @@ class TaskStatistics:
 
     def __init__(self, args, topk):
         self.args = args
-        job_times_count = args.job_count
+        self.topk = topk
         self.total_jobs_complete = 0
         self.jobs_completed_on_time = 0
         self.total_job_time = 0.0
@@ -87,15 +87,16 @@ class TaskStatistics:
         self.job_start_time = 0.0
         self.total_correct_k = np.full((len(topk),), 0.0, dtype="float32")
         self.correct_k_no_late = np.full((len(topk),), 0.0, dtype="float32")
-        if (job_times_count <= 0) or (job_time_count > args.max_job_times):
+        job_times_count = args.job_count
+        if (job_times_count <= 0) or (job_times_count > args.max_job_times):
             job_times_count = args.max_job_times
         self.job_times = np.full((job_times_count,), 100.0, dtype="float32")
 
-    def job_started(self):
+    def starting_job(self):
         """ To be called prior to starting a job's computation. """
         self.job_start_time = time.perf_counter()
 
-    def record_job(self, correct_k):
+    def finished_job(self, correct_k):
         """ To be called when a job completes. Requires the topk array returned
         by forward_loss. """
         end_time = time.perf_counter()
@@ -108,28 +109,46 @@ class TaskStatistics:
         self.total_correct_k += correct_k
 
         # Record some info depending on whether we completed on time.
-        if duration <= self.args.relative_deadline:
-            self.images_analyzed_on_time += self.args.batch_size
-            self.correct_k_no_late += correct_k
-            self.jobs_completed_on_time += 1
+        if self.args.relative_deadline > 0:
+            if duration <= self.args.relative_deadline:
+                self.images_analyzed_on_time += self.args.batch_size
+                self.correct_k_no_late += correct_k
+                self.jobs_completed_on_time += 1
+
+    def all_jobs_completed(self):
+        """ Returns true if the number of jobs specified in the args has been
+        completed. """
+        if self.args.job_count <= 0:
+            # We don't have a limit on jobs
+            return False
+        return self.total_jobs_complete >= self.args.job_count
 
     def average_job_time(self):
         """ Returns the average amount of time a job has taken so far. """
         return self.total_job_time / float(self.total_jobs_complete)
 
+    def correct_k_string(self):
+        """ Returns a human-readable string of the top-k correctness results.
+        """
+        to_return = ""
+        analyzed = float(self.images_analyzed)
+        for i in range(len(self.topk)):
+            k = self.topk[i]
+            analyzed = self.images_analyzed
+            correct_rate = self.total_correct_k[i] / analyzed
+            to_return += "top_%d: %.03f" % (k, correct_rate)
+            if i < (len(self.topk) - 1):
+                to_return += ", "
+        return to_return
+
+
 def run_test(loader, model, args):
-    """ Runs the number of batches specified in the args. Returns a tuple:
-        ([correct_k values], total_processed). """
+    """ Runs the number of batches specified in the args. Returns a
+    TaskStatistics object. """
     model.eval()
 
-    jobs_completed = 0
-    total_processed = 0
-    total_correct_k = np.full((len(FLAGS.topk),), 0.0)
+    statistics = TaskStatistics(args, FLAGS.topk)
     correct_k = np.full((len(FLAGS.topk),), 0.0)
-    job_times_count = args.job_count
-    if (job_times_count <= 0) or (job_times_count > 10000):
-        job_times_count = 10000
-    job_times = np.full((job_times_count,), 100.0, dtype="float32")
 
     # Run two batches as a warmup
     for batch_idx, (input, target) in enumerate(loader):
@@ -155,16 +174,16 @@ def run_test(loader, model, args):
         print("Waiting to be released.")
         liblitmus.wait_for_ts_release()
 
-    start_time = time.perf_counter()
     # TODO: Use a stream
 
+    start_time = time.perf_counter()
     batch_index = 0
     batch_count = len(loader)
     batch_enumerator = enumerate(loader)
     print("Number of available batches: " + str(batch_count))
     elapsed_time = 0.0
     while True:
-        if (args.job_count > 0) and (jobs_completed >= args.job_count):
+        if statistics.all_jobs_completed():
             print("Job limit reached.")
             break
         if (args.time_limit > 0) and (elapsed_time > args.time_limit):
@@ -175,31 +194,17 @@ def run_test(loader, model, args):
             batch_enumerator = enumerate(loader)
             batch_index = 0
         batch_index, (input, target) = next(batch_enumerator)
-        total_processed += FLAGS.batch_size
-        print("Running job %d / %d" % (jobs_completed + 1, args.job_count))
-        job_start_time = time.perf_counter()
 
+        print("Running job %d / %d" % (statistics.total_jobs_complete + 1,
+            args.job_count))
+        statistics.starting_job()
         single_job(input, target, model, correct_k)
-        total_correct_k += correct_k
+        statistics.finished_job(correct_k)
 
-        job_end_time = time.perf_counter()
-        job_times[jobs_completed] = job_end_time - job_start_time
-        jobs_completed += 1
-        elapsed_time = job_end_time - start_time
+        elapsed_time = time.perf_counter() - start_time
 
-    return (total_correct_k, total_processed)
+    return statistics
 
-def correct_k_string(results):
-    """ Takes the results returned by run_test and returns the top-k
-    correctness formatted as a human-readable string. """
-    to_return = ""
-    for i in range(len(FLAGS.topk)):
-        k = FLAGS.topk[i]
-        correct_rate = results[0][i] / float(results[1])
-        to_return += "top_%d: %.03f" % (k, correct_rate)
-        if i < (len(FLAGS.topk) - 1):
-            to_return += ","
-    return to_return
 
 def validate_args(args):
     """ Exits and prints a message if any of the given args are incompatible.
@@ -259,7 +264,7 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
         start_time = time.perf_counter()
         results = run_test(val_loader, model_wrapper, args)
         end_time = time.perf_counter()
-        topk_string = correct_k_string(results)
+        topk_string = results.correct_k_string()
         print("Width mult %.04f took %.03fs. %s" % (args.width_mult,
             end_time - start_time, topk_string))
     return None
