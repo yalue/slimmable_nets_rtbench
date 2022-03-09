@@ -50,27 +50,72 @@ def data_loader(val_set):
     return val_loader
 
 
-def forward_loss(model, input, target):
-    """ Forward model and return the number of top-k correct results. """
+def forward_loss(model, input, target, correct_k):
+    """ Forward model and fills in the correct-k results. """
     output = model(input)
     # topk
     _, pred = output.topk(max(FLAGS.topk))
     pred = pred.t()
     correct = pred.eq(target.view(1, -1).expand_as(pred))
-    correct_k = []
-    for k in FLAGS.topk:
-        correct_k.append(float(correct[:k].float().sum()))
-    return correct_k
+    for i in range(len(FLAGS.topk)):
+        k = FLAGS.topk[i]
+        correct_k[i] = float(correct[:k].float().sum())
+    return None
 
-def single_job(input, target, model):
+def single_job(input, target, model, correct_k):
     """ Requires the input batch and target labels, as well as the model to
-    evaluate. Returns an array of correct classifications. The i'th entry of
-    the returned array corresponds to the i'th value in FLAGS.topk. Expects the
-    input and target data to be on the CPU, but the model to be on the GPU. """
+    evaluate. Fills in the correct_k array so that the i'th entry of
+    corresponds to the i'th value in FLAGS.topk. Expects the input and target
+    data to be on the CPU, but the model to be on the GPU. """
     input = input.cuda(non_blocking = True)
     target = target.cuda(non_blocking = True)
-    correct = forward_loss(model, input, target)
-    return correct
+    correct = forward_loss(model, input, target, correct_k)
+    return None
+
+class TaskStatistics:
+    """ Used to keep track of statistics (correctness, etc) for jobs of a
+    single task. """
+
+    def __init__(self, args, topk):
+        self.args = args
+        job_times_count = args.job_count
+        self.total_jobs_complete = 0
+        self.jobs_completed_on_time = 0
+        self.total_job_time = 0.0
+        self.images_analyzed = 0
+        self.images_analyzed_on_time = 0
+        self.job_start_time = 0.0
+        self.total_correct_k = np.full((len(topk),), 0.0, dtype="float32")
+        self.correct_k_no_late = np.full((len(topk),), 0.0, dtype="float32")
+        if (job_times_count <= 0) or (job_time_count > args.max_job_times):
+            job_times_count = args.max_job_times
+        self.job_times = np.full((job_times_count,), 100.0, dtype="float32")
+
+    def job_started(self):
+        """ To be called prior to starting a job's computation. """
+        self.job_start_time = time.perf_counter()
+
+    def record_job(self, correct_k):
+        """ To be called when a job completes. Requires the topk array returned
+        by forward_loss. """
+        end_time = time.perf_counter()
+        duration = end_time - self.job_start_time
+        if self.total_jobs_complete < len(self.job_times):
+            self.job_times[self.total_jobs_complete] = duration
+        self.total_jobs_complete += 1
+        self.total_job_time += duration
+        self.images_analyzed += self.args.batch_size
+        self.total_correct_k += correct_k
+
+        # Record some info depending on whether we completed on time.
+        if duration <= self.args.relative_deadline:
+            self.images_analyzed_on_time += self.args.batch_size
+            self.correct_k_no_late += correct_k
+            self.jobs_completed_on_time += 1
+
+    def average_job_time(self):
+        """ Returns the average amount of time a job has taken so far. """
+        return self.total_job_time / float(self.total_jobs_complete)
 
 def run_test(loader, model, args):
     """ Runs the number of batches specified in the args. Returns a tuple:
@@ -79,22 +124,25 @@ def run_test(loader, model, args):
 
     jobs_completed = 0
     total_processed = 0
-    total_correct_k = []
-    job_times = np.full((args.job_count,), 100.0)
-    for k in FLAGS.topk:
-        total_correct_k.append(0.0)
+    total_correct_k = np.full((len(FLAGS.topk),), 0.0)
+    correct_k = np.full((len(FLAGS.topk),), 0.0)
+    job_times_count = args.job_count
+    if (job_times_count <= 0) or (job_times_count > 10000):
+        job_times_count = 10000
+    job_times = np.full((job_times_count,), 100.0, dtype="float32")
 
     # Run two batches as a warmup
     for batch_idx, (input, target) in enumerate(loader):
         time_1 = time.perf_counter()
         print("Running warmup batch %d" % (batch_idx + 1,))
-        single_job(input, target, model)
+        single_job(input, target, model, correct_k)
         time_2 = time.perf_counter()
         print("Running warmup batch %d took %f seconds" % (batch_idx + 1,
             time_2 - time_1))
         if batch_idx >= 1:
             break
     print("Warmup done")
+
     if args.use_litmus:
         # Make ourselves an RT task, now that we have a cost estimate.
         liblitmus.set_rt_task_param(
@@ -108,17 +156,20 @@ def run_test(loader, model, args):
         liblitmus.wait_for_ts_release()
 
     start_time = time.perf_counter()
-    # TODO: Several things
-    #  - Wait for a job at the end of everything
-    #  - Set cost estimate based on warmup time. (Increase to 4 warmup batches;
-    #    take average of final 3?)
-    #  - Use a stream.
-    #  - Check and update correctness after each job.
+    # TODO: Use a stream
+
     batch_index = 0
     batch_count = len(loader)
     batch_enumerator = enumerate(loader)
     print("Number of available batches: " + str(batch_count))
-    while jobs_completed < args.job_count:
+    elapsed_time = 0.0
+    while True:
+        if (args.job_count > 0) and (jobs_completed >= args.job_count):
+            print("Job limit reached.")
+            break
+        if (args.time_limit > 0) and (elapsed_time > args.time_limit):
+            print("Time limit reached.")
+            break
         # Reset the enumerator if we're out of batches.
         if batch_index == batch_count:
             batch_enumerator = enumerate(loader)
@@ -128,20 +179,13 @@ def run_test(loader, model, args):
         print("Running job %d / %d" % (jobs_completed + 1, args.job_count))
         job_start_time = time.perf_counter()
 
-        correct = single_job(input, target, model)
-        for i in range(len(FLAGS.topk)):
-            total_correct_k[i] += correct[i]
+        single_job(input, target, model, correct_k)
+        total_correct_k += correct_k
 
         job_end_time = time.perf_counter()
         job_times[jobs_completed] = job_end_time - job_start_time
         jobs_completed += 1
-        elapsed = job_end_time - start_time
-        if (args.time_limit > 0) and (elapsed > args.time_limit):
-            print("Time limit exceeded.")
-            break
-        if jobs_completed >= args.job_count:
-            print("All jobs completed.")
-            break
+        elapsed_time = job_end_time - start_time
 
     return (total_correct_k, total_processed)
 
@@ -165,6 +209,9 @@ def validate_args(args):
         exit(1)
     if args.use_litmus and (args.relative_deadline <= 0):
         print("LITMUS tasks must provide a relative_deadline arg.")
+        exit(1)
+    if args.max_job_times <= 0:
+        print("Must be able to store a positive number of job times.")
         exit(1)
 
 def train_val_test(args, input_ndarray=None, result_ndarray=None):
@@ -222,8 +269,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", help="The batch size to use.",
         type=int, default=64)
-    parser.add_argument("--job_count", help="The number of jobs to launch.",
-        type=int, default=100)
+    parser.add_argument("--job_count", help="The number of jobs to launch. " +
+        "0 = unlimited.", type=int, default=100)
     parser.add_argument("--time_limit", type=float, default=-1,
         help="A limit on the number of seconds to run. Negative = unlimited.")
     parser.add_argument("--width_mult", type=float, default=1.0,
@@ -242,6 +289,8 @@ def main():
         help="If set, use input_data_raw.bin and result_data_raw.bin instead" +
             " of the torchvision dataset. Only used when running " +
             "rtbenchmark.py directly.")
+    parser.add_argument("--max_job_times", type=int, default=10000,
+        help="The maximum number of job times to record.")
     args = parser.parse_args()
     data_blob = None
     result_blob = None

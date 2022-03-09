@@ -53,6 +53,7 @@ class FakeArgs:
         self.width_mult = 1.0
         self.output_file = ""
         self.data_limit = 1000
+        self.max_job_times = 10000
         self.wait_for_ts_release = True
         self.use_litmus = True
         # Default relative deadline = 2 Hz. Arbitrary and ought to be
