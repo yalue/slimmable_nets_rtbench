@@ -15,14 +15,31 @@ def get_mmapped_ndarray(filename, shape, dtype):
     a = numpy.frombuffer(mm, dtype=dtype)
     return a.reshape(shape)
 
+def page_in_ndarray(array):
+    """ Reads every 512 entries from the given numpy array. The return value
+    is arbitrary and can be ignored. Intended to be used to page an entire
+    mmapped file into memory.
+    """
+    flattened = array.flatten()
+    i = 0
+    junk = 0.0
+    while i < len(flattened):
+        junk += flattened[i]
+        i += 512
+    return junk
+
 def load_dataset():
     """ Loads the existing dataset blobs from disk. The files must already be
     present for this to succeed. Returns the input and result numpy ndarrays,
     respectively. (The child processes should convert them to torch Tensors.)
     """
+    print("Loading input dataset.")
     input_numpy = get_mmapped_ndarray("input_data_raw.bin", (-1, 3, 224, 224),
         "float32")
+    page_in_ndarray(input_numpy)
+    print("Loading result dataset.")
     result_numpy = get_mmapped_ndarray("result_data_raw.bin", (-1,), "int64")
+    page_in_ndarray(result_numpy)
     return (input_numpy, result_numpy)
 
 class FakeArgs:
@@ -37,6 +54,10 @@ class FakeArgs:
         self.output_file = ""
         self.data_limit = 1000
         self.wait_for_ts_release = True
+        self.use_litmus = True
+        # Default relative deadline = 2 Hz. Arbitrary and ought to be
+        # overridden in typical uses.
+        self.relative_deadline = 0.5
         for key in config:
             setattr(self, key, config[key])
 
@@ -65,6 +86,47 @@ def wait_for_ready_tasks(count, timeout):
         waiting = liblitmus.get_nr_ts_release_waiters()
     return True
 
+def run_all_kernel_configs(input_dataset, result_dataset):
+    """ Runs one task with each possible batch size and width multiplier.
+    Necessary for generating cached kernel code used by AMD's software. Make
+    sure to run a program with this function before actually doing any tests.
+    """
+    width_mult_list = [0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4, 0.425, 0.45,
+        0.475, 0.5, 0.525, 0.55, 0.575, 0.6, 0.625, 0.65, 0.675, 0.7, 0.725,
+        0.75, 0.775, 0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1.0]
+    batch_size_list = [1, 2, 4, 8, 16, 32, 64, 128]
+    for bs in batch_size_list:
+        for wm in width_mult_list:
+            config = {
+                "batch_size": bs,
+                "width_mult": wm,
+                "job_count": 2,
+                "relative_deadline": 2.0,
+            }
+            print("Running test with width mult %.03f, batch size %d" % (wm,
+                bs))
+            start_time = 0.0
+            p = None
+            while True:
+                start_time = time.perf_counter()
+                p = multiprocessing.Process(target=launch_single_task,
+                    args=(input_dataset, result_dataset, config))
+                p.start()
+                if wait_for_ready_tasks(1, 120.0):
+                    break
+                print("Timed out waiting for task to be ready.")
+                p.terminate()
+                time.sleep(5.0)
+                p.close()
+                p = None
+                continue
+            liblitmus.release_ts(liblitmus.litmus_clock())
+            p.join()
+            end_time = time.perf_counter()
+            print("Test with width_mult %.03f, batch size %d took %.03fs" % (
+                wm, bs, end_time - start_time))
+    return True
+
 def main():
     input_data, result_data = load_dataset()
     print("Input shape: %s, result shape: %s" % (str(input_data.shape),
@@ -81,7 +143,7 @@ def main():
         # ROCm is pretty flaky about tasks hanging during warmup and
         # initialization. So, kill any tasks that seem to be taking too long,
         # and try starting them up again.
-        if not wait_for_ready_tasks(ready_count + 1, 60.0):
+        if not wait_for_ready_tasks(ready_count + 1, 120.0):
             print("Timed out waiting for RT task to start. Retrying.")
             p.terminate()
             time.sleep(5.0)

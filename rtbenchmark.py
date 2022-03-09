@@ -2,7 +2,6 @@ import argparse
 import importlib
 import os
 import time
-import random
 
 import torch
 import numpy as np
@@ -10,6 +9,17 @@ import numpy as np
 from config import FLAGS
 import data_utils
 import liblitmus_helper as liblitmus
+
+def get_mmapped_ndarray(filename, shape, dtype):
+    """ Returns a numpy ndarray with the content of the named file and the
+    given shape. """
+    import mmap
+    f = open(filename, "r+b")
+    prot = mmap.PROT_READ | mmap.PROT_WRITE
+    mm = mmap.mmap(f.fileno(), 0, flags=mmap.MAP_SHARED, prot=prot)
+    f.close()
+    a = np.frombuffer(mm, dtype=dtype)
+    return a.reshape(shape)
 
 def get_model():
     """get model"""
@@ -38,18 +48,6 @@ def data_loader(val_set):
     batch_size = int(FLAGS.batch_size)
     val_loader = data_utils.SimpleLoader(val_set, batch_size)
     return val_loader
-
-# TODO: Remove set_random_seed if no longer needed. (Our dataset is
-# pre-shuffled)
-def set_random_seed(seed=None):
-    """set random seed"""
-    if seed is None:
-        seed = getattr(FLAGS, 'random_seed', 0)
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
 
 
 def forward_loss(model, input, target):
@@ -97,9 +95,16 @@ def run_test(loader, model, args):
         if batch_idx >= 1:
             break
     print("Warmup done")
+    if args.use_litmus:
+        # Make ourselves an RT task, now that we have a cost estimate.
+        liblitmus.set_rt_task_param(
+            exec_cost = time_2 - time_1,
+            period = args.relative_deadline,
+            relative_deadline = args.relative_deadline)
+        liblitmus.init_rt_thread()
+        liblitmus.task_mode(True)
     if args.wait_for_ts_release:
         print("Waiting to be released.")
-        # TODO (next): Set RT task params and initialize LITMUS if needed.
         liblitmus.wait_for_ts_release()
 
     start_time = time.perf_counter()
@@ -152,6 +157,16 @@ def correct_k_string(results):
             to_return += ","
     return to_return
 
+def validate_args(args):
+    """ Exits and prints a message if any of the given args are incompatible.
+    """
+    if args.wait_for_ts_release and not args.use_litmus:
+        print("Can't wait for TS release if LITMUS isn't active.")
+        exit(1)
+    if args.use_litmus and (args.relative_deadline <= 0):
+        print("LITMUS tasks must provide a relative_deadline arg.")
+        exit(1)
+
 def train_val_test(args, input_ndarray=None, result_ndarray=None):
     """ This takes the command-line args object (or similar), and possibly two
     numpy ndarrays. If provided, the ndarrays are used in lieu of loading files
@@ -160,9 +175,9 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
     assert(not getattr(FLAGS, 'inplace_distill', False))
     assert(not getattr(FLAGS, 'pretrained_model_remap_keys', False))
     assert(args.width_mult in FLAGS.width_mult_list)
+    validate_args(args)
     FLAGS.batch_size = args.batch_size
     torch.backends.cudnn.benchmark = True
-    set_random_seed()
     model, model_wrapper = get_model()
     criterion = torch.nn.CrossEntropyLoss(reduction='none')
 
@@ -217,10 +232,26 @@ def main():
         "JSON file to which results will be written.")
     parser.add_argument("--data_limit", default=1000, type=int,
         help="Limit on the number of data samples to load.")
+    parser.add_argument("--use_litmus", action="store_true",
+        help="If set, process batches in LITMUS jobs.")
     parser.add_argument("--wait_for_ts_release", action="store_true",
         help="If set, wait for LITMUS tasks to be released.")
+    parser.add_argument("--relative_deadline", default=-1.0, type=float,
+        help="Each real-time job's relative deadline, in seconds.")
+    parser.add_argument("--use_data_blobs", action="store_true",
+        help="If set, use input_data_raw.bin and result_data_raw.bin instead" +
+            " of the torchvision dataset. Only used when running " +
+            "rtbenchmark.py directly.")
     args = parser.parse_args()
-    train_val_test(args)
+    data_blob = None
+    result_blob = None
+    if args.use_data_blobs:
+        print("Using pre-computed data blobs.")
+        data_blob = get_mmapped_ndarray("input_data_raw.bin",
+            (-1, 3, 224, 224), "float32")
+        result_blob = get_mmapped_ndarray("result_data_raw.bin",
+            (-1,), "int64")
+    train_val_test(args, input_ndarray=data_blob, result_ndarray=result_blob)
 
 if __name__ == "__main__":
     main()
