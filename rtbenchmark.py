@@ -1,5 +1,6 @@
 import argparse
 import importlib
+import json
 import os
 import time
 
@@ -42,13 +43,11 @@ def data_transforms():
     ])
     return val_transforms
 
-
 def data_loader(val_set):
     """get data loader"""
     batch_size = int(FLAGS.batch_size)
     val_loader = data_utils.SimpleLoader(val_set, batch_size)
     return val_loader
-
 
 def forward_loss(model, input, target, correct_k):
     """ Forward model and fills in the correct-k results. """
@@ -109,11 +108,12 @@ class TaskStatistics:
         self.total_correct_k += correct_k
 
         # Record some info depending on whether we completed on time.
-        if self.args.relative_deadline > 0:
-            if duration <= self.args.relative_deadline:
-                self.images_analyzed_on_time += self.args.batch_size
-                self.correct_k_no_late += correct_k
-                self.jobs_completed_on_time += 1
+        # Everything's "on time" if no deadline was specified.
+        relative_dl = self.args.relative_deadline
+        if (relative_dl <= 0) or (duration <= relative_dl):
+            self.images_analyzed_on_time += self.args.batch_size
+            self.correct_k_no_late += correct_k
+            self.jobs_completed_on_time += 1
 
     def all_jobs_completed(self):
         """ Returns true if the number of jobs specified in the args has been
@@ -141,6 +141,26 @@ class TaskStatistics:
                 to_return += ", "
         return to_return
 
+    def write_to_file(self):
+        """ Writes the data contained in this object to the named JSON file
+        in args.output_file. Does nothing if no output file was specified. """
+
+        def dumper(obj):
+            """ Small helper so we can JSON serialize numpy arrays. """
+            if isinstance(obj, (np.ndarray,)):
+                return obj.tolist()
+            return vars(obj)
+
+        if self.args.output_file == "":
+            return
+        # Temporarily truncate the job_times array to the number of jobs
+        # actually completed (if necessary).
+        old_job_times = self.job_times
+        if self.total_jobs_complete < len(self.job_times):
+            self.job_times = self.job_times[0:self.total_jobs_complete]
+        with open(self.args.output_file, "w") as f:
+            json.dump(vars(self), f, indent="  ", default=dumper)
+        print("Wrote output to " + self.args.output_file)
 
 def run_test(loader, model, args):
     """ Runs the number of batches specified in the args. Returns a
@@ -205,7 +225,6 @@ def run_test(loader, model, args):
 
     return statistics
 
-
 def validate_args(args):
     """ Exits and prints a message if any of the given args are incompatible.
     """
@@ -259,6 +278,7 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
         val_loader = data_loader(val_set)
 
     print("Running test using width mult %f" % (args.width_mult,))
+    results = None
     with torch.no_grad():
         model_wrapper.apply(lambda m: setattr(m, "width_mult", args.width_mult))
         start_time = time.perf_counter()
@@ -267,8 +287,8 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
         topk_string = results.correct_k_string()
         print("Width mult %.04f took %.03fs. %s" % (args.width_mult,
             end_time - start_time, topk_string))
+    results.write_to_file()
     return None
-
 
 def main():
     parser = argparse.ArgumentParser()
