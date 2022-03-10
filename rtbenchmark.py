@@ -194,6 +194,7 @@ def run_test(loader, model, args):
     lock_od = None
     k = args.k_exclusion_value
     streams = None
+    stream = torch.cuda.default_stream()
     if k > 0:
         lock_od = liblitmus.open_kfmlp_lock(".kfmlp_lock", k, k)
     if args.use_partitioned_streams:
@@ -208,6 +209,7 @@ def run_test(loader, model, args):
     batch_enumerator = enumerate(loader)
     print("Number of available batches: " + str(batch_count))
     elapsed_time = 0.0
+    torch.cuda.synchronize()
     while True:
         # Reset the enumerator if we're out of batches.
         if batch_index == batch_count:
@@ -217,7 +219,6 @@ def run_test(loader, model, args):
 
         print("Running job %d / %d" % (statistics.total_jobs_complete + 1,
             args.job_count))
-        stream = torch.cuda.default_stream()
         if lock_od is not None:
             liblitmus.litmus_lock(lock_od)
         if args.use_partitioned_streams:
