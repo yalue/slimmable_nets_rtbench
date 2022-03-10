@@ -9,6 +9,7 @@ import numpy as np
 
 from config import FLAGS
 import data_utils
+import partitioned_streams
 import liblitmus_helper as liblitmus
 
 def get_mmapped_ndarray(filename, shape, dtype):
@@ -190,11 +191,16 @@ def run_test(loader, model, args):
             relative_deadline = args.relative_deadline)
         liblitmus.init_rt_thread()
         liblitmus.task_mode(True)
+    lock_od = None
+    k = args.k_exclusion_value
+    streams = None
+    if k > 0:
+        lock_od = liblitmus.open_kfmlp_lock(".kfmlp_lock", k, k)
+    if args.use_partitioned_streams:
+        streams = partitioned_streams.streams_for_partitions(k)
     if args.wait_for_ts_release:
         print("Waiting to be released.")
         liblitmus.wait_for_ts_release()
-
-    # TODO: Use a stream
 
     start_time = time.perf_counter()
     batch_index = 0
@@ -203,12 +209,6 @@ def run_test(loader, model, args):
     print("Number of available batches: " + str(batch_count))
     elapsed_time = 0.0
     while True:
-        if statistics.all_jobs_completed():
-            print("Job limit reached.")
-            break
-        if (args.time_limit > 0) and (elapsed_time > args.time_limit):
-            print("Time limit reached.")
-            break
         # Reset the enumerator if we're out of batches.
         if batch_index == batch_count:
             batch_enumerator = enumerate(loader)
@@ -217,12 +217,35 @@ def run_test(loader, model, args):
 
         print("Running job %d / %d" % (statistics.total_jobs_complete + 1,
             args.job_count))
+        stream = torch.cuda.default_stream()
+        if lock_od is not None:
+            liblitmus.litmus_lock(lock_od)
+        if args.use_partitioned_streams:
+            # TODO: Using this doesn't currently work!
+            slot = liblitmus.get_k_exclusion_slot()
+            print("DEBUG: in lock slot " + str(slot))
+            stream = streams[slot]
         statistics.starting_job()
-        single_job(input, target, model, correct_k)
+        with torch.cuda.stream(stream):
+            single_job(input, target, model, correct_k)
+        stream.synchronize()
+        if lock_od is not None:
+            liblitmus.litmus_unlock(lock_od)
         statistics.finished_job(correct_k)
 
         elapsed_time = time.perf_counter() - start_time
+        if (args.time_limit > 0) and (elapsed_time > args.time_limit):
+            print("Time limit reached.")
+            break
+        if statistics.all_jobs_completed():
+            print("Job limit reached.")
+            break
+        if args.use_litmus:
+            liblitmus.sleep_next_period()
 
+    # We're done with the test, end LITMUS before doing the final bookkeeping
+    if args.use_litmus:
+        liblitmus.exit_litmus()
     return statistics
 
 def validate_args(args):
@@ -236,6 +259,9 @@ def validate_args(args):
         exit(1)
     if args.max_job_times <= 0:
         print("Must be able to store a positive number of job times.")
+        exit(1)
+    if args.use_partitioned_streams and (args.k_exclusion_value <= 0):
+        print("Partitioned streams require k-exclusion locking.")
         exit(1)
 
 def train_val_test(args, input_ndarray=None, result_ndarray=None):
@@ -303,19 +329,29 @@ def main():
     parser.add_argument("--output_file", default="", help="The name of a " +
         "JSON file to which results will be written.")
     parser.add_argument("--data_limit", default=1000, type=int,
-        help="Limit on the number of data samples to load.")
+        help="Limit on the number of data samples to load. Ignored if "+
+            "--use_data_blobs is set.")
+    parser.add_argument("--use_data_blobs", action="store_true",
+        help="If set, use input_data_raw.bin and result_data_raw.bin instead" +
+            " of the torchvision dataset. Only used when running " +
+            "rtbenchmark.py directly.")
+
+    parser.add_argument("--max_job_times", type=int, default=10000,
+        help="The maximum number of job times to record.")
     parser.add_argument("--use_litmus", action="store_true",
         help="If set, process batches in LITMUS jobs.")
     parser.add_argument("--wait_for_ts_release", action="store_true",
         help="If set, wait for LITMUS tasks to be released.")
     parser.add_argument("--relative_deadline", default=-1.0, type=float,
         help="Each real-time job's relative deadline, in seconds.")
-    parser.add_argument("--use_data_blobs", action="store_true",
-        help="If set, use input_data_raw.bin and result_data_raw.bin instead" +
-            " of the torchvision dataset. Only used when running " +
-            "rtbenchmark.py directly.")
-    parser.add_argument("--max_job_times", type=int, default=10000,
-        help="The maximum number of job times to record.")
+    parser.add_argument("--k_exclusion_value", default=-1, type=int,
+        help="If set to a positive value, use k-exclusion locking where k is" +
+            " the given value. Locks are acquired during each forward pass.")
+    parser.add_argument("--use_partitioned_streams", action="store_true",
+        help="If set, and k-exclusion locking is used, then require each " +
+            "task to run GPU work on the stream corresponding to its lock " +
+            "slot.")
+
     args = parser.parse_args()
     data_blob = None
     result_blob = None

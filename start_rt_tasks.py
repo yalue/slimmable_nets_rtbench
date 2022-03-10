@@ -56,6 +56,8 @@ class FakeArgs:
         self.max_job_times = 10000
         self.wait_for_ts_release = True
         self.use_litmus = True
+        self.k_exclusion_value = -1
+        self.use_partitioned_streams = False
         # Default relative deadline = 2 Hz. Arbitrary and ought to be
         # overridden in typical uses.
         self.relative_deadline = 0.5
