@@ -4,13 +4,14 @@ import json
 import os
 import time
 
+import rocm_helper
+import liblitmus_helper as liblitmus
+import partitioned_streams
+import data_utils
+from config import FLAGS
+
 import torch
 import numpy as np
-
-from config import FLAGS
-import data_utils
-import partitioned_streams
-import liblitmus_helper as liblitmus
 
 def get_mmapped_ndarray(filename, shape, dtype):
     """ Returns a numpy ndarray with the content of the named file and the
