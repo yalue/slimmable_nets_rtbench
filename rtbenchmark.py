@@ -86,6 +86,11 @@ class TaskStatistics:
         self.images_analyzed = 0
         self.images_analyzed_on_time = 0
         self.job_start_time = 0.0
+        self.min_job_time = 1.0e10
+        self.max_job_time = -1.0e10
+        self.mean_job_time = 0.0
+        self.median_job_time = 0.0
+        self.job_time_std_dev = 0.0
         self.total_correct_k = np.full((len(topk),), 0.0, dtype="float32")
         self.correct_k_no_late = np.full((len(topk),), 0.0, dtype="float32")
         job_times_count = args.job_count
@@ -143,6 +148,16 @@ class TaskStatistics:
                 to_return += ", "
         return to_return
 
+    def compute_stats(self):
+        """ Sets the min, max, mean, and std. dev. of job times. """
+        if len(self.job_times) == 0:
+            return
+        self.min_job_time = min(self.job_times)
+        self.max_job_time = max(self.job_times)
+        self.median_job_time = np.median(self.job_times)
+        self.mean_job_time = np.mean(self.job_times)
+        self.job_time_std_dev = np.std(self.job_times)
+
     def write_to_file(self):
         """ Writes the data contained in this object to the named JSON file
         in args.output_file. Does nothing if no output file was specified. """
@@ -160,9 +175,11 @@ class TaskStatistics:
         old_job_times = self.job_times
         if self.total_jobs_complete < len(self.job_times):
             self.job_times = self.job_times[0:self.total_jobs_complete]
+        self.compute_stats()
         with open(self.args.output_file, "w") as f:
             json.dump(vars(self), f, indent="  ", default=dumper)
         print("Wrote output to " + self.args.output_file)
+        self.job_times = old_job_times
 
 def run_test(loader, model, args):
     """ Runs the number of batches specified in the args. Returns a
@@ -182,12 +199,13 @@ def run_test(loader, model, args):
             time_2 - time_1))
         if batch_idx >= 1:
             break
-    print("Warmup done")
+    print("Warmup done. Cost estimate: %fs, cost specified in args: %f" % (
+        time_2 - time_1, args.task_cost))
 
     if args.use_litmus:
         # Make ourselves an RT task, now that we have a cost estimate.
         liblitmus.set_rt_task_param(
-            exec_cost = time_2 - time_1,
+            exec_cost = args.task_cost,
             period = args.relative_deadline,
             relative_deadline = args.relative_deadline)
         liblitmus.init_rt_thread()
@@ -337,6 +355,15 @@ def main():
         help="If set, use input_data_raw.bin and result_data_raw.bin instead" +
             " of the torchvision dataset. Only used when running " +
             "rtbenchmark.py directly.")
+    parser.add_argument("--num_competitors", type=int, default=1,
+        help="The total number of competing tasks including this one.")
+    parser.add_argument("--task_index", type=int, default=0,
+        help="This task's ID if multiple competitors are running.")
+    parser.add_argument("--experiment_name", type=str, default="",
+        help="A string identifying this experiment. Basically just to be " +
+            "copied to the output file.")
+    parser.add_argument("--task_system_index", type=int, default=0,
+        help="The number of this task's task system in this experiment.")
 
     parser.add_argument("--max_job_times", type=int, default=10000,
         help="The maximum number of job times to record.")
@@ -346,6 +373,8 @@ def main():
         help="If set, wait for LITMUS tasks to be released.")
     parser.add_argument("--relative_deadline", default=-1.0, type=float,
         help="Each real-time job's relative deadline, in seconds.")
+    parser.add_argument("--task_cost", default=0.01, type=float,
+        help="The cost estimate for each RT job.")
     parser.add_argument("--k_exclusion_value", default=-1, type=int,
         help="If set to a positive value, use k-exclusion locking where k is" +
             " the given value. Locks are acquired during each forward pass.")

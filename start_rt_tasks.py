@@ -1,9 +1,17 @@
 import mmap
 import multiprocessing
 import numpy
+import random
 import time
 
 import liblitmus_helper as liblitmus
+
+def width_mults_and_batch_sizes():
+    width_mult_list = [0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4, 0.425, 0.45,
+        0.475, 0.5, 0.525, 0.55, 0.575, 0.6, 0.625, 0.65, 0.675, 0.7, 0.725,
+        0.75, 0.775, 0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1.0]
+    batch_size_list = [1, 2, 4, 8, 16, 32, 64, 128]
+    return width_mult_list, batch_size_list
 
 def get_mmapped_ndarray(filename, shape, dtype):
     """ Returns a numpy ndarray with the content of the named file and the
@@ -58,9 +66,14 @@ class FakeArgs:
         self.use_litmus = True
         self.k_exclusion_value = -1
         self.use_partitioned_streams = False
+        self.num_competitors = 1
+        self.task_index = 0
+        self.experiment_name = ""
+
         # Default relative deadline = 2 Hz. Arbitrary and ought to be
         # overridden in typical uses.
         self.relative_deadline = 0.5
+        self.task_cost = 0.01
         for key in config:
             setattr(self, key, config[key])
 
@@ -94,10 +107,7 @@ def run_all_kernel_configs(input_dataset, result_dataset):
     Necessary for generating cached kernel code used by AMD's software. Make
     sure to run a program with this function before actually doing any tests.
     """
-    width_mult_list = [0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4, 0.425, 0.45,
-        0.475, 0.5, 0.525, 0.55, 0.575, 0.6, 0.625, 0.65, 0.675, 0.7, 0.725,
-        0.75, 0.775, 0.8, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 1.0]
-    batch_size_list = [1, 2, 4, 8, 16, 32, 64, 128]
+    width_mult_list, batch_size_list = width_mults_and_batch_sizes()
     for bs in batch_size_list:
         for wm in width_mult_list:
             config = {
@@ -130,35 +140,93 @@ def run_all_kernel_configs(input_dataset, result_dataset):
                 wm, bs, end_time - start_time))
     return True
 
-def main():
-    input_data, result_data = load_dataset()
-    print("Input shape: %s, result shape: %s" % (str(input_data.shape),
-        str(result_data.shape)))
-    # TODO: Actually generate configs for multiple RT tasks.
-    tasks = []
+def estimate_cost(width_mult, batch_size, competitor_count):
+    # TODO (next, 2): Implement estimate_cost a bit better. Use real data.
+    return 0.1
+
+def deadline_from_cost(cost, width_mult, batch_size, competitor_count):
+    """ Returns a random period/deadline given a cost and task params. """
+    # TODO: Randomize the deadline a bit better. For now it just returns a
+    # multiple of cost between 2.0 and (2.0 + competitor_count)
+    cost_multiplier = 2.0 + (float(competitor_count) * random.random())
+    return cost * cost_multiplier
+
+def random_config(experiment_name, task_system_index, task_index,
+    num_competitors):
+    """ Returns an args object for a single task with a randomly selected width
+    mult, batch size, and cost/period estimate. """
+    width_mult_list, batch_size_list = width_mults_and_batch_sizes()
+    width_mult = random.choice(width_mult_list)
+    batch_size = random.choice(batch_size_list)
+    cost = estimate_cost(width_mult, batch_size, num_competitors)
+    deadline = deadline_from_cost(cost, width_mult, batch_size,
+        num_competitors)
+    output_filename = "results/%s_%d_%d.json" % (experiment_name,
+        task_system_index, task_index)
+    config = {
+        "num_competitors": num_competitors,
+        "task_index": task_index,
+        "experiment_name": experiment_name,
+        "task_system_index": task_system_index,
+        "output_file": output_filename,
+        "relative_deadline": deadline,
+        "task_cost": cost,
+        "time_limit": 120.0,
+        "job_count": 0,
+        "batch_size": batch_size,
+        "width_mult": width_mult
+    }
+    return config
+
+def unpartitioned_competitors(competitor_count, task_system_count):
+    """ Runs task systems where all tasks share the same GPU with no
+    restrictions. Returns a list of lists of task configs. """
+    experiment_name = "unpartitioned" + str(competitor_count)
+    to_return = []
+    for i in range(task_system_count):
+        task_system = []
+        for j in range(competitor_count):
+            task = random_config(experiment_name, i, j, competitor_count)
+            task_system.append(task)
+        to_return.append(task_system)
+    return to_return
+
+def run_task_system(tasks, input_data, result_data):
     ready_count = 0
-    config = {}
-    # Kick off two tasks as a test
-    while ready_count < 2:
+    children = []
+    i = 0
+    experiment_name = tasks[0]["experiment_name"]
+    while ready_count < len(tasks):
+        task = tasks[i]
         p = multiprocessing.Process(target=launch_single_task,
-            args=(input_data, result_data, config))
+            args=(input_data, result_data, task))
         p.start()
-        # ROCm is pretty flaky about tasks hanging during warmup and
-        # initialization. So, kill any tasks that seem to be taking too long,
-        # and try starting them up again.
         if not wait_for_ready_tasks(ready_count + 1, 120.0):
-            print("Timed out waiting for RT task to start. Retrying.")
+            print(("Timed out waiting for task %d/%d of experiment %s to " +
+                "start. Retrying.") % (task["task_index"] + 1,
+                    task["num_competitors"], experiment_name))
             p.terminate()
             time.sleep(5.0)
             p.close()
             p = None
             continue
         ready_count += 1
-        tasks.append(p)
-    print("All child tasks launched. Releasing and waiting.")
+        children.append(p)
+        i += 1
+    print("All child tasks for %s ready. Releasing." % (experiment_name,))
     liblitmus.release_ts(liblitmus.litmus_clock())
     for p in tasks:
         p.join()
+
+def main():
+    input_data, result_data = load_dataset()
+    print("Input shape: %s, result shape: %s" % (str(input_data.shape),
+        str(result_data.shape)))
+    random.seed(1337)
+    for i in range(6):
+        task_systems = unpartitioned_competitors(i + 1, 40)
+        for ts in task_systems:
+            run_task_system(ts, input_data, result_data)
 
 if __name__ == "__main__":
     main()
