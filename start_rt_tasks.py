@@ -4,7 +4,7 @@ import numpy
 import random
 import time
 
-import liblitmus_helper as liblitmus
+import kfmlp_control
 
 def width_mults_and_batch_sizes():
     width_mult_list = [0.25, 0.275, 0.3, 0.325, 0.35, 0.375, 0.4, 0.425, 0.45,
@@ -63,17 +63,14 @@ class FakeArgs:
         self.data_limit = 1000
         self.max_job_times = 10000
         self.wait_for_ts_release = True
-        self.use_litmus = True
-        self.k_exclusion_value = -1
+        self.use_locking = False
         self.use_partitioned_streams = False
         self.num_competitors = 1
         self.task_index = 0
         self.experiment_name = ""
-
         # Default relative deadline = 2 Hz. Arbitrary and ought to be
         # overridden in typical uses.
         self.relative_deadline = 0.5
-        self.task_cost = 0.01
         for key in config:
             setattr(self, key, config[key])
 
@@ -89,17 +86,17 @@ def launch_single_task(input_data, result_data, config):
         result_ndarray = result_data)
 
 def wait_for_ready_tasks(count, timeout):
-    """ Waits until the number of LITMUS task-sysytem release waiters is at
-    least the given count. Returns True when this happens, or False if the
-    timeout occurs first. """
-    waiting = liblitmus.get_nr_ts_release_waiters()
+    """ Waits until the number of task-sysytem release waiters is at least the
+    given count. Returns True when this happens, or False if the timeout occurs
+    first. """
+    waiting = kfmlp_control.get_ts_waiter_count()
     start_time = time.perf_counter()
     while waiting < count:
         cur_time = time.perf_counter()
         if (cur_time - start_time) > timeout:
             return False
         time.sleep(0.1)
-        waiting = liblitmus.get_nr_ts_release_waiters()
+        waiting = kfmlp_control.get_ts_waiter_count()
     return True
 
 def run_all_kernel_configs(input_dataset, result_dataset):
@@ -133,7 +130,7 @@ def run_all_kernel_configs(input_dataset, result_dataset):
                 p.close()
                 p = None
                 continue
-            liblitmus.release_ts(liblitmus.litmus_clock())
+            kfmlp_control.release_ts()
             p.join()
             end_time = time.perf_counter()
             print("Test with width_mult %.03f, batch size %d took %.03fs" % (
@@ -170,7 +167,6 @@ def random_config(experiment_name, task_system_index, task_index,
         "task_system_index": task_system_index,
         "output_file": output_filename,
         "relative_deadline": deadline,
-        "task_cost": cost,
         "time_limit": 120.0,
         "job_count": 0,
         "batch_size": batch_size,
@@ -216,11 +212,12 @@ def run_task_system(tasks, input_data, result_data):
         children.append(p)
         i += 1
     print("All child tasks for %s ready. Releasing." % (experiment_name,))
-    liblitmus.release_ts(liblitmus.litmus_clock())
+    kfmlp_control.release_ts()
     for p in children:
         p.join()
 
 def main():
+    kfmlp_control.reset_module_handle()
     input_data, result_data = load_dataset()
     print("Input shape: %s, result shape: %s" % (str(input_data.shape),
         str(result_data.shape)))

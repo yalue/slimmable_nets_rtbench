@@ -4,8 +4,8 @@ import json
 import os
 import time
 
+import kfmlp_control
 import rocm_helper
-import liblitmus_helper as liblitmus
 import partitioned_streams
 import data_utils
 from config import FLAGS
@@ -97,6 +97,7 @@ class TaskStatistics:
         if (job_times_count <= 0) or (job_times_count > args.max_job_times):
             job_times_count = args.max_job_times
         self.job_times = np.full((job_times_count,), 100.0, dtype="float32")
+        self.last_job_duration = 0.0
 
     def starting_job(self):
         """ To be called prior to starting a job's computation. """
@@ -113,6 +114,7 @@ class TaskStatistics:
         self.total_job_time += duration
         self.images_analyzed += self.args.batch_size
         self.total_correct_k += correct_k
+        self.last_job_duration = duration
 
         # Record some info depending on whether we completed on time.
         # Everything's "on time" if no deadline was specified.
@@ -121,6 +123,15 @@ class TaskStatistics:
             self.images_analyzed_on_time += self.args.batch_size
             self.correct_k_no_late += correct_k
             self.jobs_completed_on_time += 1
+
+    def add_missed_deadlines(self, missed_count):
+        """ To be called with the number of missed deadlines every time a job
+        overran one or more deadlines. (Does nothing if missed_count is 0.) """
+        self.total_jobs_complete += missed_count
+
+    def get_last_job_duration(self):
+        """ Returns the amount of time required by the previous job. """
+        return self.last_job_duration
 
     def all_jobs_completed(self):
         """ Returns true if the number of jobs specified in the args has been
@@ -152,11 +163,13 @@ class TaskStatistics:
         """ Sets the min, max, mean, and std. dev. of job times. """
         if len(self.job_times) == 0:
             return
-        self.min_job_time = min(self.job_times)
-        self.max_job_time = max(self.job_times)
-        self.median_job_time = np.median(self.job_times)
-        self.mean_job_time = np.mean(self.job_times)
-        self.job_time_std_dev = np.std(self.job_times)
+        # Cast these to floats to avoid issues with JSON serialization of numpy
+        # float types.
+        self.min_job_time = float(min(self.job_times))
+        self.max_job_time = float(max(self.job_times))
+        self.median_job_time = float(np.median(self.job_times))
+        self.mean_job_time = float(np.mean(self.job_times))
+        self.job_time_std_dev = float(np.std(self.job_times))
 
     def write_to_file(self):
         """ Writes the data contained in this object to the named JSON file
@@ -181,6 +194,16 @@ class TaskStatistics:
         print("Wrote output to " + self.args.output_file)
         self.job_times = old_job_times
 
+def sleep_next_period(last_cost, relative_deadline):
+    """ Sleeps until the next period boundary, assuming relative deadlines
+    equal periods. Returns the number of missed deadlines, if any. """
+    missed_deadlines = 0
+    while last_cost > relative_deadline:
+        missed_deadlines += 1
+        last_cost -= relative_deadline
+    time.sleep(relative_deadline - last_cost)
+    return missed_deadlines
+
 def run_test(loader, model, args):
     """ Runs the number of batches specified in the args. Returns a
     TaskStatistics object. """
@@ -199,38 +222,28 @@ def run_test(loader, model, args):
             time_2 - time_1))
         if batch_idx >= 1:
             break
-    print("Warmup done. Cost estimate: %fs, cost specified in args: %f" % (
-        time_2 - time_1, args.task_cost))
 
-    if args.use_litmus:
-        # Make ourselves an RT task, now that we have a cost estimate.
-        liblitmus.set_rt_task_param(
-            exec_cost = args.task_cost,
-            period = args.relative_deadline,
-            relative_deadline = args.relative_deadline)
-        liblitmus.init_rt_thread()
-        liblitmus.task_mode(True)
+    # Make sure we occasionally suspend after this!
+    kfmlp_control.start_sched_fifo()
+
     lock_od = None
-    k = args.k_exclusion_value
     streams = None
     stream = torch.cuda.default_stream()
-    if k > 0:
-        lock_od = liblitmus.open_kfmlp_lock(".kfmlp_lock", k, k)
     if args.use_partitioned_streams:
         streams = partitioned_streams.streams_for_partitions(k)
-    if args.wait_for_ts_release:
-        print("Waiting to be released.")
-        liblitmus.wait_for_ts_release()
-
-    start_time = time.perf_counter()
     batch_index = 0
     batch_count = len(loader)
     batch_enumerator = enumerate(loader)
     print("Number of available batches: " + str(batch_count))
-    elapsed_time = 0.0
     torch.cuda.synchronize()
-    job_number = liblitmus.get_job_no()
-    prev_job_number = job_number - 1
+
+    if args.wait_for_ts_release:
+        print("Waiting to be released.")
+        kfmlp_control.wait_for_ts_release()
+
+    start_time = time.perf_counter()
+    elapsed_time = 0.0
+    jobs_missed = 0
 
     while True:
         # Reset the enumerator if we're out of batches.
@@ -238,34 +251,23 @@ def run_test(loader, model, args):
             batch_enumerator = enumerate(loader)
             batch_index = 0
         batch_index, (input, target) = next(batch_enumerator)
-
-        # We expect job numbers to increase by 1 every iteration.
-        job_number = liblitmus.get_job_no()
-        jobs_missed = (job_number - prev_job_number) - 1
-        if jobs_missed > 0:
-            print("Missed %d job deadlines." % (jobs_missed,))
-            # TODO: Count deadline misses here.
-        prev_job_number = job_number
-
-        # TODO (next): Preemptively drop jobs if our isolated cost estimate
-        # is too large to fit in before the deadline. Need API to get deadline?
+        statistics.add_missed_deadlines(jobs_missed)
 
         elapsed_time = time.perf_counter() - start_time
         print("%.02f/%.02fs: Running job %d / %d" % (elapsed_time,
             args.time_limit, statistics.total_jobs_complete + 1,
             args.job_count))
-        if lock_od is not None:
-            liblitmus.litmus_lock(lock_od)
+        lock_slot = 0
+        if args.use_locking:
+            kfmlp_control.acquire_lock()
         if args.use_partitioned_streams:
-            slot = liblitmus.get_k_exclusion_slot()
-            print("DEBUG: in lock slot " + str(slot))
-            stream = streams[slot]
+            stream = streams[lock_slot]
         statistics.starting_job()
         with torch.cuda.stream(stream):
             single_job(input, target, model, correct_k)
         stream.synchronize()
-        if lock_od is not None:
-            liblitmus.litmus_unlock(lock_od)
+        if args.use_locking:
+            kfmlp_control.release_lock()
         statistics.finished_job(correct_k)
 
         if (args.time_limit > 0) and (elapsed_time > args.time_limit):
@@ -274,27 +276,20 @@ def run_test(loader, model, args):
         if statistics.all_jobs_completed():
             print("Job limit reached.")
             break
-        if args.use_litmus:
-            liblitmus.sleep_next_period()
+        if args.relative_deadline >= 0:
+            jobs_missed = sleep_next_period(statistics.get_last_job_duration(),
+                args.relative_deadline)
 
-    # We're done with the test, end LITMUS before doing the final bookkeeping
-    if args.use_litmus:
-        liblitmus.exit_litmus()
+    kfmlp_control.end_sched_fifo()
     return statistics
 
 def validate_args(args):
     """ Exits and prints a message if any of the given args are incompatible.
     """
-    if args.wait_for_ts_release and not args.use_litmus:
-        print("Can't wait for TS release if LITMUS isn't active.")
-        exit(1)
-    if args.use_litmus and (args.relative_deadline <= 0):
-        print("LITMUS tasks must provide a relative_deadline arg.")
-        exit(1)
     if args.max_job_times <= 0:
         print("Must be able to store a positive number of job times.")
         exit(1)
-    if args.use_partitioned_streams and (args.k_exclusion_value <= 0):
+    if args.use_partitioned_streams and not args.use_locking:
         print("Partitioned streams require k-exclusion locking.")
         exit(1)
 
@@ -306,6 +301,9 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
     assert(not getattr(FLAGS, 'inplace_distill', False))
     assert(not getattr(FLAGS, 'pretrained_model_remap_keys', False))
     assert(args.width_mult in FLAGS.width_mult_list)
+    # If train_val_test was called in a child process, we need to open a new
+    # file handle to the KFMLP kernel module's chardev.
+    kfmlp_control.reset_module_handle()
     validate_args(args)
     FLAGS.batch_size = args.batch_size
     torch.backends.cudnn.benchmark = True
@@ -381,17 +379,13 @@ def main():
 
     parser.add_argument("--max_job_times", type=int, default=10000,
         help="The maximum number of job times to record.")
-    parser.add_argument("--use_litmus", action="store_true",
-        help="If set, process batches in LITMUS jobs.")
     parser.add_argument("--wait_for_ts_release", action="store_true",
-        help="If set, wait for LITMUS tasks to be released.")
+        help="If set, wait for tasks to be released. (Uses the KFMLP module.)")
     parser.add_argument("--relative_deadline", default=-1.0, type=float,
         help="Each real-time job's relative deadline, in seconds.")
-    parser.add_argument("--task_cost", default=0.01, type=float,
-        help="The cost estimate for each RT job.")
-    parser.add_argument("--k_exclusion_value", default=-1, type=int,
-        help="If set to a positive value, use k-exclusion locking where k is" +
-            " the given value. Locks are acquired during each forward pass.")
+    parser.add_argument("--use_locking", action="store_true",
+        help="If set, use k-exclusion locking. Some other process must have " +
+            "already set the max K value with the KFMLP module.")
     parser.add_argument("--use_partitioned_streams", action="store_true",
         help="If set, and k-exclusion locking is used, then require each " +
             "task to run GPU work on the stream corresponding to its lock " +

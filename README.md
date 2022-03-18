@@ -28,25 +28,18 @@ modified dependencies. You will likely need to install all of the following
 projects on your system in order for this to function correctly, if at all.
 They should be installed in the following order:
 
- 1. [My modified LITMUS^RT kernel.](https://github.com/yalue/litmus-rt/tree/add_kfmlp).
-    (Note the branch.) This adds kernel support for k-FMLP locking, and is
-    simply a version of LITMUS that is new enough to support ROCm. This
-    requires some specic config options discussed in my [porting notes](https://gist.github.com/yalue/6852e9b88abbc60beba9c855a0045271).
-    A working `.config` file for my Ubuntu 18.04-based system can be found
-    [here](https://gist.github.com/yalue/f22e28165f518b37497155db662af027).
-
- 2. [My modifications to ROCm.](https://github.com/yalue/rocm_mega_repo). Note
+ 1. [My modifications to ROCm.](https://github.com/yalue/rocm_mega_repo). Note
     that this requires a specific ROCm version to be installed. It adds
     userspace support for per-kernel GPU locking and subdividing large memory-
     transfer requests.
 
- 3. The `rocm_helper` python library. This is part of the same
+ 2. The `rocm_helper` python library. This is part of the same
     `rocm_mega_repo`, but I'm listing it separately so it won't be overlooked.
     Follow the instructions in the `rocm_helper_python` directory in the above
     repository. It's used to create streams with CU masks within PyTorch
     scripts.
 
- 4. [My modified version of PyTorch.](https://github.com/yalue/rocm_pytorch).
+ 3. [My modified version of PyTorch.](https://github.com/yalue/rocm_pytorch).
     Install this from source, using the same instructions you would when
     installing vanilla PyTorch from source. (It has been run through `hipify`
     already, so you don't need to do so again.) This fixes support for using
@@ -54,16 +47,19 @@ They should be installed in the following order:
     was apparently never fully integrated. Maybe I'll submit a patch to
     upstream about this some day.
 
- 5. [My GPU-locking kernel module.](https://github.com/yalue/gpu_locking_module).
-    While not used for locking any more (due to LITMUS support), this still
-    provides a user-accessible interface for evicting running tasks off of an
-    AMD GPU.
+ 4. [My GPU-locking kernel module.](https://github.com/yalue/gpu_locking_module).
+    While not used for locking any more (I use my newer KFMLP module instead),
+    this still provides a user-accessible interface for evicting running tasks
+    off of an AMD GPU.
 
- 6. [My python library for interacting with LITMUS.](https://github.com/yalue/liblitmus_python)
-    This provides the ability to configure Python scripts as real-time tasks,
-    run jobs, acquire locks, etc.
+ 5. [My KFMLP locking support.](https://github.com/yalue/kfmlp_locking_module).
+    This consists of a Linux kernel module and a python library for interacting
+    with it. The kernel module provides a k-exclusion lock and a few other
+    convenience features, such as a barrier allowing a task system to be
+    released only when all tasks are ready, and an API for switching a process
+    to use the SCHED_FIFO scheduler, bypassing kernel permission checks.
 
- 7. The pre-computed data blobs. This will, in turn, require the imagenet
+ 6. The pre-computed data blobs. This will, in turn, require the imagenet
     dataset on-disk in the same layout expected by the
     [original repo](https://github.com/JiahuiYu/slimmable_networks). Once you
     have the imagenet dataset in the correct layout, change the `dataset_dir`
