@@ -229,19 +229,34 @@ def run_test(loader, model, args):
     print("Number of available batches: " + str(batch_count))
     elapsed_time = 0.0
     torch.cuda.synchronize()
+    job_number = liblitmus.get_job_no()
+    prev_job_number = job_number - 1
+
     while True:
         # Reset the enumerator if we're out of batches.
-        if batch_index == batch_count:
+        if batch_index == (batch_count - 1):
             batch_enumerator = enumerate(loader)
             batch_index = 0
         batch_index, (input, target) = next(batch_enumerator)
 
-        print("Running job %d / %d" % (statistics.total_jobs_complete + 1,
+        # We expect job numbers to increase by 1 every iteration.
+        job_number = liblitmus.get_job_no()
+        jobs_missed = (job_number - prev_job_number) - 1
+        if jobs_missed > 0:
+            print("Missed %d job deadlines." % (jobs_missed,))
+            # TODO: Count deadline misses here.
+        prev_job_number = job_number
+
+        # TODO (next): Preemptively drop jobs if our isolated cost estimate
+        # is too large to fit in before the deadline. Need API to get deadline?
+
+        elapsed_time = time.perf_counter() - start_time
+        print("%.02f/%.02fs: Running job %d / %d" % (elapsed_time,
+            args.time_limit, statistics.total_jobs_complete + 1,
             args.job_count))
         if lock_od is not None:
             liblitmus.litmus_lock(lock_od)
         if args.use_partitioned_streams:
-            # TODO: Using this doesn't currently work!
             slot = liblitmus.get_k_exclusion_slot()
             print("DEBUG: in lock slot " + str(slot))
             stream = streams[slot]
@@ -253,7 +268,6 @@ def run_test(loader, model, args):
             liblitmus.litmus_unlock(lock_od)
         statistics.finished_job(correct_k)
 
-        elapsed_time = time.perf_counter() - start_time
         if (args.time_limit > 0) and (elapsed_time > args.time_limit):
             print("Time limit reached.")
             break

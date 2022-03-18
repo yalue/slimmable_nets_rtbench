@@ -191,6 +191,8 @@ def unpartitioned_competitors(competitor_count, task_system_count):
         to_return.append(task_system)
     return to_return
 
+# TODO: Use a shared buffer to allow run_task_system to monitor child tasks
+# for activity after they've started up.
 def run_task_system(tasks, input_data, result_data):
     ready_count = 0
     children = []
@@ -215,7 +217,7 @@ def run_task_system(tasks, input_data, result_data):
         i += 1
     print("All child tasks for %s ready. Releasing." % (experiment_name,))
     liblitmus.release_ts(liblitmus.litmus_clock())
-    for p in tasks:
+    for p in children:
         p.join()
 
 def main():
