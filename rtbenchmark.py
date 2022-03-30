@@ -1,7 +1,17 @@
+# Attempt to prevent numpy multithreading.
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["MIOPEN_COMPILE_PARALLEL_LEVEL"] = "1"
+import threadpoolctl
+threadpoolctl.threadpool_limits(1)
+
 import argparse
 import importlib
 import json
-import os
 import time
 
 import kfmlp_control
@@ -182,7 +192,9 @@ class TaskStatistics:
             return vars(obj)
 
         if self.args.output_file == "":
+            print("No output file specified.")
             return
+        print("Writing results to " + str(self.args.output_file))
         # Temporarily truncate the job_times array to the number of jobs
         # actually completed (if necessary).
         old_job_times = self.job_times
@@ -224,12 +236,13 @@ def run_test(loader, model, args):
             break
 
     # Make sure we occasionally suspend after this!
-    kfmlp_control.start_sched_fifo()
+    #kfmlp_control.start_sched_fifo()
 
     lock_od = None
     streams = None
     stream = torch.cuda.default_stream()
     if args.use_partitioned_streams:
+        k = kfmlp_control.get_k()
         streams = partitioned_streams.streams_for_partitions(k)
     batch_index = 0
     batch_count = len(loader)
@@ -276,11 +289,11 @@ def run_test(loader, model, args):
         if statistics.all_jobs_completed():
             print("Job limit reached.")
             break
-        if args.relative_deadline >= 0:
+        if args.relative_deadline > 0:
             jobs_missed = sleep_next_period(statistics.get_last_job_duration(),
                 args.relative_deadline)
 
-    kfmlp_control.end_sched_fifo()
+    #kfmlp_control.end_sched_fifo()
     return statistics
 
 def validate_args(args):
@@ -301,6 +314,9 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
     assert(not getattr(FLAGS, 'inplace_distill', False))
     assert(not getattr(FLAGS, 'pretrained_model_remap_keys', False))
     assert(args.width_mult in FLAGS.width_mult_list)
+    # Disable pytorch multithreading, hopefully.
+    torch.set_num_threads(1)
+    threadpoolctl.threadpool_limits(1)
     # If train_val_test was called in a child process, we need to open a new
     # file handle to the KFMLP kernel module's chardev.
     kfmlp_control.reset_module_handle()

@@ -122,7 +122,7 @@ class SimpleLoader(object):
         self.batch_size = batch_size
 
     def __next__(self):
-        if (self.current_index + self.batch_size) >= len(self.dataset):
+        if (self.current_index + self.batch_size) > len(self.dataset):
             raise StopIteration
         i = self.current_index
         data_slice = self.dataset.input_tensor[i : (i + self.batch_size)]

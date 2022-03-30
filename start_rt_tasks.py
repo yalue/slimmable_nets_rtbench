@@ -1,3 +1,15 @@
+# Attempt to disable numpy multithreading.
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["MIOPEN_COMPILE_PARALLEL_LEVEL"] = "1"
+import threadpoolctl
+threadpoolctl.threadpool_limits(1)
+
+import copy
 import mmap
 import multiprocessing
 import numpy
@@ -42,11 +54,11 @@ def load_dataset():
     respectively. (The child processes should convert them to torch Tensors.)
     """
     print("Loading input dataset.")
-    input_numpy = get_mmapped_ndarray("input_data_raw.bin", (-1, 3, 224, 224),
+    input_numpy = get_mmapped_ndarray("input_data_raw_small.bin", (-1, 3, 224, 224),
         "float32")
     page_in_ndarray(input_numpy)
     print("Loading result dataset.")
-    result_numpy = get_mmapped_ndarray("result_data_raw.bin", (-1,), "int64")
+    result_numpy = get_mmapped_ndarray("result_data_raw_small.bin", (-1,), "int64")
     page_in_ndarray(result_numpy)
     return (input_numpy, result_numpy)
 
@@ -68,9 +80,8 @@ class FakeArgs:
         self.num_competitors = 1
         self.task_index = 0
         self.experiment_name = ""
-        # Default relative deadline = 2 Hz. Arbitrary and ought to be
-        # overridden in typical uses.
-        self.relative_deadline = 0.5
+        # No deadline by default.
+        self.relative_deadline = -1.0
         for key in config:
             setattr(self, key, config[key])
 
@@ -105,16 +116,20 @@ def run_all_kernel_configs(input_dataset, result_dataset):
     sure to run a program with this function before actually doing any tests.
     """
     width_mult_list, batch_size_list = width_mults_and_batch_sizes()
+    i = 0
     for bs in batch_size_list:
         for wm in width_mult_list:
+            result_filename = "results/isolated_all_%d.json" % (i,)
             config = {
                 "batch_size": bs,
                 "width_mult": wm,
-                "job_count": 2,
-                "relative_deadline": 2.0,
+                "job_count": 100,
+                "output_file": result_filename,
+                "relative_deadline": -1.0,
             }
-            print("Running test with width mult %.03f, batch size %d" % (wm,
-                bs))
+            print("Running test %d: with width mult %.03f, batch size %d" % (i,
+                wm, bs))
+            i += 1
             start_time = 0.0
             p = None
             while True:
@@ -187,6 +202,54 @@ def unpartitioned_competitors(competitor_count, task_system_count):
         to_return.append(task_system)
     return to_return
 
+def compare_6way_sharing():
+    """ Returns a set of scenarios, each of which allows 6 tasks to share the
+    GPU. """
+    base_task = {
+        "num_competitors": 6,
+        "task_system_index": 0,
+        "relative_deadline": -1.0,
+        "time_limit": 60.0 * 5.0,
+        "job_count": 0,
+        "batch_size": 16,
+    }
+    task1 = copy.deepcopy(base_task)
+    task1["width_mult"] = 1.0
+    task2 = copy.deepcopy(base_task)
+    task2["width_mult"] = 0.75
+    task3 = copy.deepcopy(base_task)
+    task3["width_mult"] = 0.5
+    task4 = copy.deepcopy(base_task)
+    task4["batch_size"] = 8
+    task4["width_mult"] = 1.0
+    task5 = copy.deepcopy(base_task)
+    task5["batch_size"] = 8
+    task5["width_mult"] = 0.75
+    task6 = copy.deepcopy(base_task)
+    task6["batch_size"] = 8
+    task6["width_mult"] = 0.5
+    base_task_system = [task1, task2, task3, task4, task5, task6]
+
+    def make_experiment(name, use_locking, use_partitioned_streams):
+        scenario = copy.deepcopy(base_task_system)
+        for i in range(len(scenario)):
+            t = scenario[i]
+            t["experiment_name"] = name
+            t["task_index"] = i
+            t["output_file"] = "results/%s_%d.json" % (name, i)
+            t["use_locking"] = use_locking
+            t["use_partitioned_streams"] = use_partitioned_streams
+        return scenario
+
+    to_return = [
+        make_experiment("6way_unmanaged", False, False),
+        make_experiment("6way_locked_exclusive", True, False),
+        make_experiment("6way_locked_2shared", True, False),
+        make_experiment("6way_locked_2partitioned", True, True),
+    ]
+    return to_return
+
+
 # TODO: Use a shared buffer to allow run_task_system to monitor child tasks
 # for activity after they've started up.
 def run_task_system(tasks, input_data, result_data):
@@ -216,16 +279,24 @@ def run_task_system(tasks, input_data, result_data):
     for p in children:
         p.join()
 
+def run_6way_sharing_experiment(input_data, result_data):
+    """ Runs the 6-way sharing experiment. """
+    # I wrote this while too tired; it probably should be refactored.
+    scenarios = compare_6way_sharing()
+    run_task_system(scenarios[0], input_data, result_data)
+    kfmlp_control.set_k(1)
+    run_task_system(scenarios[1], input_data, result_data)
+    kfmlp_control.set_k(2)
+    run_task_system(scenarios[2], input_data, result_data)
+    run_task_system(scenarios[3], input_data, result_data)
+
 def main():
     kfmlp_control.reset_module_handle()
     input_data, result_data = load_dataset()
     print("Input shape: %s, result shape: %s" % (str(input_data.shape),
         str(result_data.shape)))
     random.seed(1337)
-    for i in range(6):
-        task_systems = unpartitioned_competitors(i + 1, 40)
-        for ts in task_systems:
-            run_task_system(ts, input_data, result_data)
+    run_6way_sharing_experiment(input_data, result_data)
 
 if __name__ == "__main__":
     main()

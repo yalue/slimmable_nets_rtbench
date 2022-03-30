@@ -1,6 +1,7 @@
 __pycache__/
 models/__pycache__/
 utils/__pycache__/
+results/*.json
 input_data_raw.bin
 result_data_raw.bin
 .kfmlp_lock
