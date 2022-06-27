@@ -24,6 +24,11 @@ try:
 except ImportError:
     print("KFMLP python module is not available. Locking will fail if used.")
 
+try:
+    import rocm_helper
+except ImportError:
+    print("rocm_helper python module is not available.")
+
 import partitioned_streams
 import data_utils
 from config import FLAGS
@@ -302,14 +307,25 @@ def run_test(loader, model, args):
         if batch_index == (batch_count - 1):
             batch_enumerator = enumerate(loader)
             batch_index = 0
-        batch_index, (input, target) = next(batch_enumerator)
-        statistics.add_missed_deadlines(jobs_missed)
 
+        # Update statistics at the head of the loop.
         elapsed_time = time.perf_counter() - start_time
         print("%.02f/%.02fs: Running job %d / %d" % (elapsed_time,
             args.time_limit, statistics.total_jobs_complete + 1,
             args.job_count))
+        statistics.add_missed_deadlines(jobs_missed)
+
+        ######################################### TMP FOR DEBUGGING##########################
+        tracing = False
+        if statistics.all_but_one_jobs_completed():
+            rocm_helper.fake_kernel_a()
+            tracing = True
+        #####################################################################################
+
+        # Get input data
+        batch_index, (input, target) = next(batch_enumerator)
         lock_slot = 0
+
         do_kutrace = False
         do_kutrace = args.do_kutrace and statistics.all_but_one_jobs_completed()
         if do_kutrace:
@@ -335,6 +351,11 @@ def run_test(loader, model, args):
         if args.use_locking:
             kfmlp_control.release_lock()
         statistics.finished_job(correct_k)
+
+        ###################################### TMP FOR DEBUGGING ############################
+        if tracing:
+            rocm_helper.fake_kernel_b()
+        #####################################################################################
 
         if (args.time_limit > 0) and (elapsed_time > args.time_limit):
             print("Time limit reached.")
