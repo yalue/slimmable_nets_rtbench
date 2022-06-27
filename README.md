@@ -25,8 +25,9 @@ Usage
 
 This project, being primarily used by my own research, requires _many_ specific
 modified dependencies. You will likely need to install all of the following
-projects on your system in order for this to function correctly, if at all.
-They should be installed in the following order:
+projects on your system in order to use full functionality. (The minimal
+`rtbenchmark.py` may be able to work without locking or other management if
+some of these aren't present.) They should be installed in the following order:
 
  1. [My modifications to ROCm.](https://github.com/yalue/rocm_mega_repo). Note
     that this requires a specific ROCm version to be installed. It adds

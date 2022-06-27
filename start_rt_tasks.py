@@ -10,12 +10,10 @@ import threadpoolctl
 threadpoolctl.threadpool_limits(1)
 
 import copy
-import mmap
 import multiprocessing
 import numpy
 import random
 import time
-
 import kfmlp_control
 
 def width_mults_and_batch_sizes():
@@ -28,25 +26,19 @@ def width_mults_and_batch_sizes():
 def get_mmapped_ndarray(filename, shape, dtype):
     """ Returns a numpy ndarray with the content of the named file and the
     given shape. """
+    import gc
+    import mmap
     f = open(filename, "r+b")
     prot = mmap.PROT_READ | mmap.PROT_WRITE
     mm = mmap.mmap(f.fileno(), 0, flags=mmap.MAP_SHARED, prot=prot)
     f.close()
-    a = numpy.frombuffer(mm, dtype=dtype)
+    # Copy the entire file into a separate memory mapping.
+    mm2 = mmap.mmap(-1, mm.size(), flags=mmap.MAP_SHARED, prot=prot)
+    mm2.write(mm.read())
+    mm2.seek(0)
+    a = numpy.frombuffer(mm2, dtype=dtype)
+    gc.collect()
     return a.reshape(shape)
-
-def page_in_ndarray(array):
-    """ Reads every 512 entries from the given numpy array. The return value
-    is arbitrary and can be ignored. Intended to be used to page an entire
-    mmapped file into memory.
-    """
-    flattened = array.flatten()
-    i = 0
-    junk = 0.0
-    while i < len(flattened):
-        junk += flattened[i]
-        i += 512
-    return junk
 
 def load_dataset():
     """ Loads the existing dataset blobs from disk. The files must already be
@@ -56,10 +48,8 @@ def load_dataset():
     print("Loading input dataset.")
     input_numpy = get_mmapped_ndarray("input_data_raw_small.bin", (-1, 3, 224, 224),
         "float32")
-    page_in_ndarray(input_numpy)
     print("Loading result dataset.")
     result_numpy = get_mmapped_ndarray("result_data_raw_small.bin", (-1,), "int64")
-    page_in_ndarray(result_numpy)
     return (input_numpy, result_numpy)
 
 class FakeArgs:
@@ -80,6 +70,7 @@ class FakeArgs:
         self.num_competitors = 1
         self.task_index = 0
         self.experiment_name = ""
+        self.do_kutrace = False
         # No deadline by default.
         self.relative_deadline = -1.0
         for key in config:

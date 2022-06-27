@@ -1,7 +1,11 @@
 # This file contains some code for generating PyTorch streams for various GPU
 # partition configurations.
 
-import rocm_helper
+try:
+    import rocm_helper
+except:
+    print("rocm_helper not available. Expect errors if using partitioning.")
+
 import torch
 
 def split_halves(mask):

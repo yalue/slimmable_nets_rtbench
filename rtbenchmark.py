@@ -14,8 +14,16 @@ import importlib
 import json
 import time
 
-import kfmlp_control
-import rocm_helper
+try:
+    import kutrace
+except ImportError:
+    print("KUTrace python module is not available. KUTrace will fail if used.")
+
+try:
+    import kfmlp_control
+except ImportError:
+    print("KFMLP python module is not available. Locking will fail if used.")
+
 import partitioned_streams
 import data_utils
 from config import FLAGS
@@ -27,11 +35,17 @@ def get_mmapped_ndarray(filename, shape, dtype):
     """ Returns a numpy ndarray with the content of the named file and the
     given shape. """
     import mmap
+    import gc
     f = open(filename, "r+b")
     prot = mmap.PROT_READ | mmap.PROT_WRITE
     mm = mmap.mmap(f.fileno(), 0, flags=mmap.MAP_SHARED, prot=prot)
     f.close()
-    a = np.frombuffer(mm, dtype=dtype)
+    # Copy the entire file into a separate memory mapping.
+    mm2 = mmap.mmap(-1, mm.size(), flags=mmap.MAP_SHARED, prot=prot)
+    mm2.write(mm.read())
+    mm2.seek(0)
+    a = np.frombuffer(mm2, dtype=dtype)
+    gc.collect()
     return a.reshape(shape)
 
 def get_model():
@@ -107,11 +121,27 @@ class TaskStatistics:
         if (job_times_count <= 0) or (job_times_count > args.max_job_times):
             job_times_count = args.max_job_times
         self.job_times = np.full((job_times_count,), 100.0, dtype="float32")
+        self.blocking_times = None
+        if args.use_locking:
+            self.blocking_times = np.full((job_times_count,), 100.0,
+                dtype="float32")
+        else:
+            self.blocking_times = np.full((job_times_count,), 0.0,
+                dtype="float32")
         self.last_job_duration = 0.0
 
     def starting_job(self):
-        """ To be called prior to starting a job's computation. """
+        """ To be called prior to starting a job's computation, or attempting
+        to take the lock for the job. """
         self.job_start_time = time.perf_counter()
+
+    def lock_acquired(self):
+        """ To be called after starting_job(), once a lock has been acquired.
+        """
+        if self.total_jobs_complete >= len(self.blocking_times):
+            return
+        duration = time.perf_counter() - self.job_start_time
+        self.blocking_times[self.total_jobs_complete] = duration
 
     def finished_job(self, correct_k):
         """ To be called when a job completes. Requires the topk array returned
@@ -146,10 +176,19 @@ class TaskStatistics:
     def all_jobs_completed(self):
         """ Returns true if the number of jobs specified in the args has been
         completed. """
-        if self.args.job_count <= 0:
+        limit = self.args.job_count
+        if limit <= 0:
             # We don't have a limit on jobs
             return False
-        return self.total_jobs_complete >= self.args.job_count
+        return self.total_jobs_complete >= limit
+
+    def all_but_one_jobs_completed(self):
+        """ Returns true if there's only one job left to run. Basically like
+        all_jobs_completed() minus one. """
+        limit = self.args.job_count
+        if limit <= 0:
+            return False
+        return self.total_jobs_complete == (limit - 1)
 
     def average_job_time(self):
         """ Returns the average amount of time a job has taken so far. """
@@ -271,14 +310,28 @@ def run_test(loader, model, args):
             args.time_limit, statistics.total_jobs_complete + 1,
             args.job_count))
         lock_slot = 0
+        do_kutrace = False
+        do_kutrace = args.do_kutrace and statistics.all_but_one_jobs_completed()
+        if do_kutrace:
+            assert(kutrace.test())
+            kutrace.go("python")
+        statistics.starting_job()
         if args.use_locking:
             kfmlp_control.acquire_lock()
+            statistics.lock_acquired()
         if args.use_partitioned_streams:
             stream = streams[lock_slot]
-        statistics.starting_job()
+        if do_kutrace:
+            # Insert a "job start" mark into KUtrace
+            kutrace.mark_c("job-st")
         with torch.cuda.stream(stream):
             single_job(input, target, model, correct_k)
         stream.synchronize()
+        if do_kutrace:
+            # Insert a "job done" mark into KUtrace, stop tracing, and save the
+            # log.
+            kutrace.mark_c("job-dn")
+            kutrace.stop("single_job.trace")
         if args.use_locking:
             kfmlp_control.release_lock()
         statistics.finished_job(correct_k)
@@ -317,9 +370,10 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
     # Disable pytorch multithreading, hopefully.
     torch.set_num_threads(1)
     threadpoolctl.threadpool_limits(1)
-    # If train_val_test was called in a child process, we need to open a new
-    # file handle to the KFMLP kernel module's chardev.
-    kfmlp_control.reset_module_handle()
+    if args.use_locking:
+        # If train_val_test was called in a child process, we need to open a
+        # new file handle to the KFMLP kernel module's chardev.
+        kfmlp_control.reset_module_handle()
     validate_args(args)
     FLAGS.batch_size = args.batch_size
     torch.backends.cudnn.benchmark = True
@@ -406,15 +460,18 @@ def main():
         help="If set, and k-exclusion locking is used, then require each " +
             "task to run GPU work on the stream corresponding to its lock " +
             "slot.")
+    parser.add_argument("--do_kutrace", action="store_true",
+        help="If set, record a kutrace trace of the last iteration of the " +
+            "microbenchmark. It will be saved into single_job.trace.")
 
     args = parser.parse_args()
     data_blob = None
     result_blob = None
     if args.use_data_blobs:
         print("Using pre-computed data blobs.")
-        data_blob = get_mmapped_ndarray("input_data_raw.bin",
+        data_blob = get_mmapped_ndarray("input_data_raw_small.bin",
             (-1, 3, 224, 224), "float32")
-        result_blob = get_mmapped_ndarray("result_data_raw.bin",
+        result_blob = get_mmapped_ndarray("result_data_raw_small.bin",
             (-1,), "int64")
     train_val_test(args, input_ndarray=data_blob, result_ndarray=result_blob)
 
