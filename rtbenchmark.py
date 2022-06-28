@@ -464,7 +464,7 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", help="The batch size to use.",
-        type=int, default=16)
+        type=int, default=32)
     parser.add_argument("--job_count", help="The number of jobs to launch. " +
         "0 = unlimited.", type=int, default=100)
     parser.add_argument("--time_limit", type=float, default=-1,

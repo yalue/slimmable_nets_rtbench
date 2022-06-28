@@ -131,8 +131,8 @@ def update_kernel_time_info(info, event)
   info[id]["total_time"] += (end_s - start_s)
 end
 
-if ARGV.size != 2
-  puts "Usage: ruby #{$0} <input file.json> <output_file.json>"
+if ARGV.size != 3
+  puts "Usage: ruby #{$0} <input file.json> <log JSON from pytorch script> <output_file.json>"
   exit 1
 end
 
@@ -180,7 +180,10 @@ content["traceEvents"].each do |event|
 end
 filtered_content["traceEvents"] = filtered_events
 
-File.open(ARGV[1], "wb") {|f| f.write(JSON.pretty_generate(filtered_content))}
+job_content = File.open(ARGV[1], "rb") {|f| JSON.parse(f.read)}
+filtered_content["job_info"] = job_content
+
+File.open(ARGV[2], "wb") {|f| f.write(JSON.pretty_generate(filtered_content))}
 puts "Wrote #{ARGV[1]} OK."
 puts "Output #{filtered_events.size.to_s} events."
 

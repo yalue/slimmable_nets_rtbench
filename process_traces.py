@@ -114,21 +114,21 @@ def get_kernels(events):
         if "LaunchKernel" not in event["name"]:
             continue
         name = get_kernel_name(event)
-        duration = event["args"]["DurationS"]
+        duration = event["args"]["AvgDurationS"]
         kernels.append((name, duration))
     return kernels
 
-def load_events_json(filename):
+def load_json(filename):
     data = None
     with open("results/" + filename) as f:
         data = json.loads(f.read())
-    return data["traceEvents"]
+    return data
 
 def get_times_ms(filename):
     """ Returns a list of kernel durations, in ms, from the specified JSON
     file. """
-    events = load_events_json(filename)
-    kernels = get_kernels(events)
+    events = load_json(filename)
+    kernels = get_kernels(events["traceEvents"])
     times_ms = []
     for k in kernels:
         times_ms.append(k[1] * 1000.0)
@@ -143,12 +143,9 @@ def plot_from_files(filenames, labels):
 
 def print_table_line(filename, batch_size, width_mult):
     """ Formats the four columns of the given result file as tabular data. """
-    events = load_events_json(filename)
-    # Nice that we leave the DeviceSynchronize in there, right? Means event 0
-    # is before any of the memory stuff on CPU.
-    job_start_s = events[0]["args"]["EndS"]
-    job_end_s = events[-1]["args"]["EndS"]
-    job_time_ms = (job_end_s - job_start_s) * 1000.0
+    data = load_json(filename)
+    events = data["traceEvents"]
+    job_time_ms = data["job_info"]["mean_job_time"] * 1000.0
     kernels = get_kernels(events)
     total_kernel_ms = 0.0
     for k in kernels:
@@ -161,7 +158,7 @@ def table_from_files(filenames, batch_sizes, width_mults):
     job time for each filename. """
     print(r'\begin{tabular}{|c|c|c|c|}')
     print(r'\hline')
-    print(r'Batch Size & Width Mult. & Total Kernel Time (ms) & Total Job Time (ms) \\')
+    print(r'Batch Size & Width Mult. & Mean Total Kernel Time (ms) & Mean Total Job Time (ms) \\')
     print(r'\hline')
     for i in range(len(filenames)):
         print_table_line(filenames[i], batch_sizes[i], width_mults[i])
@@ -183,26 +180,26 @@ labels = [
 figs.append(plot_from_files(filenames, labels))
 
 filenames = [
-    "8_batch.json",
     "full_width.json",
-    "32_batch.json",
+    "64_batch.json",
+    "128_batch.json",
 ]
 labels = [
-    "Batch Size = 8",
-    "Batch Size = 16",
     "Batch Size = 32",
+    "Batch Size = 64",
+    "Batch Size = 128",
 ]
 figs.append(plot_from_files(filenames, labels))
 plot.show()
 
 filenames = [
-    "8_batch.json",
     "full_width.json",
-    "32_batch.json",
-    "25_width_8_batch.json",
+    "64_batch.json",
+    "128_batch.json",
     "25_width.json",
-    "25_width_32_batch.json",
+    "25_width_64_batch.json",
+    "25_width_128_batch.json",
 ]
-table_from_files(filenames, [8, 16, 32, 8, 16, 32],
+table_from_files(filenames, [32, 64, 128, 32, 64, 128],
     [1.0, 1.0, 1.0, 0.25, 0.25, 0.25])
 
