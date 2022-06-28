@@ -158,7 +158,8 @@ def table_from_files(filenames, batch_sizes, width_mults):
     job time for each filename. """
     print(r'\begin{tabular}{|c|c|c|c|}')
     print(r'\hline')
-    print(r'Batch Size & Width Mult. & Mean Total Kernel Time (ms) & Mean Total Job Time (ms) \\')
+    print(r'\multirow{2}*{Batch Size} & \multirow{2}*{Width Mult.} & Mean Total & Total Job \\')
+    print(r' & & Kernel Time (ms) & Time (ms) \\')
     print(r'\hline')
     for i in range(len(filenames)):
         print_table_line(filenames[i], batch_sizes[i], width_mults[i])

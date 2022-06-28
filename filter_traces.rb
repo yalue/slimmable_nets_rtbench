@@ -35,7 +35,6 @@ def update_arg_times(event, base_time, kernel_time_info)
   end_s = args["EndNs"].to_i.to_f / 1.0e9
   args["BeginS"] = start_s - base_time
   args["EndS"] = end_s - base_time
-  args["DurationS"] = end_s - start_s
 
   if event["name"].include?("LaunchKernel")
     args_str = args["args"]
@@ -125,10 +124,47 @@ def update_kernel_time_info(info, event)
       "total_time"=>0.0}
     info[id] = new_info
   end
-  start_s = event["args"]["BeginNs"].to_i.to_f / 1.0e9
-  end_s = event["args"]["EndNs"].to_i.to_f / 1.0e9
   info[id]["calls"] += 1
-  info[id]["total_time"] += (end_s - start_s)
+  info[id]["total_time"] += event["args"]["ActualDuration"]
+end
+
+# The durations listed in the hipLaunchKernel events are bogus.
+def get_actual_kernel_durations(events)
+  to_return = []
+  seen_kernel_b = false
+  events.each do |event|
+    # Looking for is_fake_kernel_b will "align" us with the start of the events
+    # with the correct DurationNs measurements.
+    if !seen_kernel_b
+      seen_kernel_b = is_fake_kernel_b(event)
+      next
+    end
+    next if !event.include?("args")
+    args = event["args"]
+    next if !args.include?("queue-id")
+    duration_s = args["DurationNs"].to_i.to_f / 1.0e9
+    to_return << duration_s
+  end
+  to_return
+end
+
+# Copy kernel's actual durations from their separate events near the end of the
+# trace.
+def copy_kernel_durations(events)
+  actual_durations = get_actual_kernel_durations(events)
+  kernel_index = 0
+  events.each do |event|
+    next if !event.include?("name")
+    next if !event["name"].include?("LaunchKernel")
+    break if kernel_index > actual_durations.size
+    event["args"]["ActualDuration"] = actual_durations[kernel_index]
+    kernel_index += 1
+  end
+  if kernel_index != actual_durations.size
+    puts "Got %d kernels, but %d durations!" % [kernel_index, actual_durations.size]
+    exit 1
+  end
+  puts "Fixed kernel durations."
 end
 
 if ARGV.size != 3
@@ -139,6 +175,7 @@ end
 content = File.open(ARGV[0], "rb") {|f| JSON.parse(f.read)}
 puts "Read #{ARGV[0]} OK."
 puts "Got %d events in input file." % [content["traceEvents"].size]
+copy_kernel_durations(content["traceEvents"])
 
 base_time = get_earliest_time(content["traceEvents"])
 puts "Base time " + base_time.to_s
@@ -178,12 +215,13 @@ content["traceEvents"].each do |event|
   update_arg_times(event, base_time, kernel_time_info)
   filtered_events << event
 end
+
 filtered_content["traceEvents"] = filtered_events
 
 job_content = File.open(ARGV[1], "rb") {|f| JSON.parse(f.read)}
 filtered_content["job_info"] = job_content
 
 File.open(ARGV[2], "wb") {|f| f.write(JSON.pretty_generate(filtered_content))}
-puts "Wrote #{ARGV[1]} OK."
+puts "Wrote #{ARGV[2]} OK."
 puts "Output #{filtered_events.size.to_s} events."
 
