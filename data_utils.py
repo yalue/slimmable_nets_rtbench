@@ -99,10 +99,10 @@ class BufferDataset(torch.utils.data.Dataset):
     """ A dataset class that expects all data to be contained in preloaded
     numpy blobs in CPU memory. """
 
-    def __init__(self, input_array, result_array):
+    def __init__(self, input_array, result_array, device):
         self.data_count = input_array.shape[0]
-        self.input_tensor = torch.from_numpy(input_array)
-        self.result_tensor = torch.from_numpy(result_array)
+        self.input_tensor = torch.from_numpy(input_array).to(device)
+        self.result_tensor = torch.from_numpy(result_array).to(device)
 
     def __getitem__(self, index):
         return self.input_tensor[index], self.result_tensor[index]

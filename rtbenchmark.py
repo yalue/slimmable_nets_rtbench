@@ -74,11 +74,17 @@ def data_transforms():
     ])
     return val_transforms
 
-def data_loader(val_set):
-    """get data loader"""
+def data_loader(val_set, args):
+    """ Returns a DataLoader for the data. Returns a SimpleLoader if possible.
+    """
     batch_size = int(FLAGS.batch_size)
-    val_loader = data_utils.SimpleLoader(val_set, batch_size)
-    return val_loader
+
+    # Our SimpleLoader won't work if we're using the ImageFolder dataset.
+    if args.no_preload_dataset:
+        return torch.utils.data.DataLoader(val_set, batch_size=batch_size,
+            shuffle=False, pin_memory=True, num_workers=0, drop_last=True)
+
+    return data_utils.SimpleLoader(val_set, batch_size)
 
 def forward_loss(model, input, target, correct_k):
     """ Forward model and fills in the correct-k results. """
@@ -92,13 +98,14 @@ def forward_loss(model, input, target, correct_k):
         correct_k[i] = float(correct[:k].float().sum())
     return None
 
-def single_job(input, target, model, correct_k):
+def single_job(input, target, model, correct_k, args):
     """ Requires the input batch and target labels, as well as the model to
     evaluate. Fills in the correct_k array so that the i'th entry of
-    corresponds to the i'th value in FLAGS.topk. Expects the input and target
-    data to be on the CPU, but the model to be on the GPU. """
-    input = input.cuda(non_blocking = True)
-    target = target.cuda(non_blocking = True)
+    corresponds to the i'th value in FLAGS.topk. Expects the model to be on the
+    GPU already. """
+    if not args.preload_gpu_memory:
+        input = input.cuda(non_blocking = True)
+        target = target.cuda(non_blocking = True)
     correct = forward_loss(model, input, target, correct_k)
     return None
 
@@ -272,12 +279,14 @@ def run_test(loader, model, args):
     for batch_idx, (input, target) in enumerate(loader):
         time_1 = time.perf_counter()
         print("Running warmup batch %d" % (batch_idx + 1,))
-        single_job(input, target, model, correct_k)
+        single_job(input, target, model, correct_k, args)
         time_2 = time.perf_counter()
         print("Running warmup batch %d took %f seconds" % (batch_idx + 1,
             time_2 - time_1))
         if batch_idx >= 1:
             break
+    if args.insert_trace_marks:
+        rocm_helper.fake_kernel_a()
 
     # Make sure we occasionally suspend after this!
     #kfmlp_control.start_sched_fifo()
@@ -315,12 +324,11 @@ def run_test(loader, model, args):
             args.job_count))
         statistics.add_missed_deadlines(jobs_missed)
 
-        ######################################### TMP FOR DEBUGGING##########################
         tracing = False
-        if statistics.all_but_one_jobs_completed():
-            rocm_helper.fake_kernel_a()
-            tracing = True
-        #####################################################################################
+        if args.insert_trace_marks:
+            if statistics.all_but_one_jobs_completed():
+                rocm_helper.fake_kernel_a()
+                tracing = True
 
         # Get input data
         batch_index, (input, target) = next(batch_enumerator)
@@ -339,23 +347,24 @@ def run_test(loader, model, args):
             stream = streams[lock_slot]
         if do_kutrace:
             # Insert a "job start" mark into KUtrace
-            kutrace.mark_c("job-st")
+            kutrace.mark_c("job")
         with torch.cuda.stream(stream):
-            single_job(input, target, model, correct_k)
+            single_job(input, target, model, correct_k, args)
         stream.synchronize()
         if do_kutrace:
             # Insert a "job done" mark into KUtrace, stop tracing, and save the
             # log.
-            kutrace.mark_c("job-dn")
+            kutrace.mark_c("/job")
+            time.sleep(0.001)
             kutrace.stop("single_job.trace")
         if args.use_locking:
             kfmlp_control.release_lock()
         statistics.finished_job(correct_k)
 
-        ###################################### TMP FOR DEBUGGING ############################
         if tracing:
+            # Will only be true in the first place if args.insert_trace_marks
+            # was set.
             rocm_helper.fake_kernel_b()
-        #####################################################################################
 
         if (args.time_limit > 0) and (elapsed_time > args.time_limit):
             print("Time limit reached.")
@@ -378,6 +387,12 @@ def validate_args(args):
         exit(1)
     if args.use_partitioned_streams and not args.use_locking:
         print("Partitioned streams require k-exclusion locking.")
+        exit(1)
+    if args.use_data_blobs and args.no_preload_dataset:
+        print("Using data blobs requires preloading data.")
+        exit(1)
+    if args.no_preload_dataset and args.preload_gpu_memory:
+        print("Can't load from disk and load from GPU memory.")
         exit(1)
 
 def train_val_test(args, input_ndarray=None, result_ndarray=None):
@@ -412,19 +427,26 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
     print('Loaded model {}.'.format(FLAGS.pretrained))
 
     # data
+    device = torch.device("cpu")
+    if args.preload_gpu_memory:
+        device = torch.device("cuda:0")
+
     val_loader = None
     if input_ndarray is None:
         val_transforms = data_transforms()
         from torchvision import datasets
         val_set = datasets.ImageFolder(os.path.join(FLAGS.dataset_dir, 'val'),
             transform=val_transforms)
-        val_set = data_utils.PreloadDataset(val_set, args.data_limit,
-            torch.device("cpu"))
-        val_loader = data_loader(val_set)
+        # Preload the dataset unless the args specified not to.
+        if not args.no_preload_dataset:
+            val_set = data_utils.PreloadDataset(val_set, args.data_limit,
+                device)
+        val_loader = data_loader(val_set, args)
     else:
         assert(result_ndarray is not None)
-        val_set = data_utils.BufferDataset(input_ndarray, result_ndarray)
-        val_loader = data_loader(val_set)
+        val_set = data_utils.BufferDataset(input_ndarray, result_ndarray,
+            device)
+        val_loader = data_loader(val_set, args)
 
     print("Running test using width mult %f" % (args.width_mult,))
     results = None
@@ -442,7 +464,7 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", help="The batch size to use.",
-        type=int, default=64)
+        type=int, default=16)
     parser.add_argument("--job_count", help="The number of jobs to launch. " +
         "0 = unlimited.", type=int, default=100)
     parser.add_argument("--time_limit", type=float, default=-1,
@@ -484,6 +506,14 @@ def main():
     parser.add_argument("--do_kutrace", action="store_true",
         help="If set, record a kutrace trace of the last iteration of the " +
             "microbenchmark. It will be saved into single_job.trace.")
+    parser.add_argument("--no_preload_dataset", action="store_true",
+        help="If set, do *not* preload the dataset into memory. Incompatible " +
+            "with using data blobs.")
+    parser.add_argument("--preload_gpu_memory", action="store_true",
+        help="If set, buffer the dataset into GPU memory.")
+    parser.add_argument("--insert_trace_marks", action="store_true",
+        help="If set, insert some calls to fake kernels to serve as trace " +
+            "markers.")
 
     args = parser.parse_args()
     data_blob = None

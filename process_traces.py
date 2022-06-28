@@ -37,43 +37,23 @@ def get_line_styles():
     global all_styles
     if all_styles is not None:
         return all_styles
-    color_options = [
-        "black",
-        "cyan",
-        "red",
-        "magenta",
-        "blue",
-        "green",
-        "y",
-    ]
-    # [Solid line, dashed line, dash-dot line, dotted line]
-    dashes_options = [
-        [1, 0],
-        [3, 1, 3, 1],
-        [3, 1, 1, 1],
-        [1, 1, 1, 1],
-    ]
-    marker_options = [
-        None,
-        "o",
-        "v",
-        "s",
-        "*",
-        "+",
-        "D"
-    ]
-    # Build a combined list containing every style combination.
-    all_styles = []
-    for m in marker_options:
-        for d in dashes_options:
-            for c in color_options:
-                to_add = {}
-                if m is not None:
-                    to_add["marker"] = m
-                    to_add["markevery"] = 0.1
-                to_add["c"] = c
-                to_add["dashes"] = d
-                all_styles.append(to_add)
+    line_styles = []
+    line_styles.append({"color": "k", "linestyle": "-"})
+    line_styles.append({"color": "red", "linestyle": "--", "markevery": 0.075,
+        "markersize": 6, "marker": "x", "mew": 1.0})
+    line_styles.append({"color": "blue", "linestyle": "-", "markevery": 0.075,
+        "markersize": 5, "marker": "o"})
+    line_styles.append({"color": "green", "linestyle": "--",
+        "markevery": 0.075, "markersize": 8, "marker": ">"})
+    line_styles.append({"color": "k", "linestyle": "-.", "markevery": 0.075,
+        "markersize": 8, "marker": "*"})
+    line_styles.append({"color": "grey", "linestyle": "--"})
+    line_styles.append({"color": "k", "linestyle": "-",
+        "dashes": [8, 4, 2, 4, 2, 4]})
+    line_styles.append({"color": "grey", "linestyle": "-",
+        "dashes": [8, 4, 2, 4, 2, 4]})
+    line_styles.append({"color": "grey", "linestyle": "-."})
+    all_styles = line_styles
     return all_styles
 
 def add_plot_padding(axes):
@@ -98,7 +78,8 @@ def plot_cdfs(all_times, labels):
     style_cycler = itertools.cycle(get_line_styles())
 
     figure = plot.figure()
-    figure.suptitle("Kernel Time Distributions")
+    # The title isn't necessary in the paper.
+    # figure.suptitle("Kernel Time Distributions")
     axes = figure.add_subplot(1, 1, 1)
     # Make the axes track data exactly, we'll manually add padding later.
     axes.autoscale(enable=True, axis='both', tight=True)
@@ -106,16 +87,16 @@ def plot_cdfs(all_times, labels):
     for i in range(len(all_times)):
         times = all_times[i]
         cdf = convert_values_to_cdf(times)
-        axes.plot(cdf[0], cdf[1], lw=1.5, label=labels[i],
+        axes.plot(cdf[0], cdf[1], lw=1.0, label=labels[i],
             **next(style_cycler))
 
     add_plot_padding(axes)
     axes.set_xlabel("Time (milliseconds)")
     axes.set_ylabel("% <= X")
 
-    # TODO: Put legend on the top of the plot
-    legend = plot.legend()
-    legend.set_draggable(True)
+    legend = plot.legend(loc=3, ncol=2, bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
+        mode="expand", borderaxespad=0.0)
+    #legend.set_draggable(True)
     return figure
 
 def get_kernel_name(event):
@@ -137,78 +118,91 @@ def get_kernels(events):
         kernels.append((name, duration))
     return kernels
 
+def load_events_json(filename):
+    data = None
+    with open("results/" + filename) as f:
+        data = json.loads(f.read())
+    return data["traceEvents"]
+
 def get_times_ms(filename):
     """ Returns a list of kernel durations, in ms, from the specified JSON
     file. """
-    data = None
-    with open(filename) as f:
-        data = json.loads(f.read())
-    events = data["traceEvents"]
+    events = load_events_json(filename)
     kernels = get_kernels(events)
     times_ms = []
     for k in kernels:
         times_ms.append(k[1] * 1000.0)
     return times_ms
 
-data = None
-with open("rocprof_trace_filtered.json") as f:
-    data = json.loads(f.read())
-events = data["traceEvents"]
+def plot_from_files(filenames, labels):
+    """ Gets a CDF using the given filenames and labels. """
+    times = []
+    for f in filenames:
+        times.append(get_times_ms(f))
+    return plot_cdfs(times, labels)
 
-kernels = get_kernels(events)
-times_ms = []
-for k in kernels:
-    print("%s,%.12f" % (k[0], k[1]))
-    times_ms.append(k[1] * 1000.0)
+def print_table_line(filename, batch_size, width_mult):
+    """ Formats the four columns of the given result file as tabular data. """
+    events = load_events_json(filename)
+    # Nice that we leave the DeviceSynchronize in there, right? Means event 0
+    # is before any of the memory stuff on CPU.
+    job_start_s = events[0]["args"]["EndS"]
+    job_end_s = events[-1]["args"]["EndS"]
+    job_time_ms = (job_end_s - job_start_s) * 1000.0
+    kernels = get_kernels(events)
+    total_kernel_ms = 0.0
+    for k in kernels:
+        total_kernel_ms += k[1] * 1000.0
+    print("%d & %.2f & %.03f & %.03f \\\\" % (batch_size, width_mult,
+        total_kernel_ms, job_time_ms))
 
-bar_ranges = [
-    0.001,
-    0.005,
-    0.01,
-    0.05,
-    0.1,
-    0.5,
+def table_from_files(filenames, batch_sizes, width_mults):
+    """ Prints LaTeX tabular data containing the total kernel time and overall
+    job time for each filename. """
+    print(r'\begin{tabular}{|c|c|c|c|}')
+    print(r'\hline')
+    print(r'Batch Size & Width Mult. & Total Kernel Time (ms) & Total Job Time (ms) \\')
+    print(r'\hline')
+    for i in range(len(filenames)):
+        print_table_line(filenames[i], batch_sizes[i], width_mults[i])
+    print(r'\hline')
+    print(r'\end{tabular}')
+
+figs = []
+
+filenames = [
+    "full_width.json",
+    "50_width.json",
+    "25_width.json",
 ]
+labels = [
+    "Width Mult = 1.0",
+    "Width Mult = 0.5",
+    "Width Mult = 0.25",
+]
+figs.append(plot_from_files(filenames, labels))
 
-# The first "label" would sit on the y axis, so we'll add a dummy spot to keep
-# the rest of the stuff centered.
-bar_labels = [""]
-bar_data = [0]
-
-for i in range(len(bar_ranges)):
-    range_end = bar_ranges[i]
-    range_start = 0.0
-    if i > 0:
-        range_start = bar_ranges[i - 1]
-    bar_labels.append("%.4f - %.4f" % (range_start, range_end))
-    count = 0
-    for t in times_ms:
-        if t < range_start:
-            continue
-        if t >= range_end:
-            continue
-        count += 1
-    print("Got %d kernels in range %s" % (count, bar_labels[-1]))
-    bar_data.append(count)
-
-max_range = bar_ranges[-1]
-bar_labels.append(">= %.3f" % (max_range, ))
-count = 0
-for t in times_ms:
-    if t < max_range:
-        continue
-    count += 1
-bar_data.append(count)
-
-figure = plot.figure()
-figure.suptitle("Binned Kernel Times")
-axes = figure.add_subplot(1, 1, 1)
-xdata = numpy.arange(len(bar_data))
-bar_container = axes.bar(xdata, bar_data)
-axes.set_xlim(left=0, right=len(bar_data))
-axes.set_xticklabels(bar_labels)
-axes.set_xlabel("Kernel Durations (ms)")
-axes.set_ylabel("Number of Kernels")
-cdf_figure = plot_cdf(times_ms)
+filenames = [
+    "8_batch.json",
+    "full_width.json",
+    "32_batch.json",
+]
+labels = [
+    "Batch Size = 8",
+    "Batch Size = 16",
+    "Batch Size = 32",
+]
+figs.append(plot_from_files(filenames, labels))
 plot.show()
+
+filenames = [
+    "8_batch.json",
+    "full_width.json",
+    "32_batch.json",
+    "25_width_8_batch.json",
+    "25_width.json",
+    "25_width_32_batch.json",
+]
+table_from_files(filenames, [8, 16, 32, 8, 16, 32],
+    [1.0, 1.0, 1.0, 0.25, 0.25, 0.25])
 

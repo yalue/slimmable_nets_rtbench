@@ -27,7 +27,7 @@ end
 
 # If the event includes timestamps, this adds numerical timestamps to the JSON,
 # as an offset relative to the earliest time.
-def update_arg_times(event, base_time)
+def update_arg_times(event, base_time, kernel_time_info)
   return if !event.include?("args")
   args = event["args"]
   return if !args.include?("BeginNs")
@@ -35,6 +35,23 @@ def update_arg_times(event, base_time)
   end_s = args["EndNs"].to_i.to_f / 1.0e9
   args["BeginS"] = start_s - base_time
   args["EndS"] = end_s - base_time
+  args["DurationS"] = end_s - start_s
+
+  if event["name"].include?("LaunchKernel")
+    args_str = args["args"]
+    name = kernel_name(args_str)
+    dims = grid_dims(args_str)
+    id = name + dims.to_s
+    info = kernel_time_info[id]
+    if !info
+      puts "Previously unseen kernel " + id.to_s
+      exit 1
+    end
+    avg_s = info["total_time"] / info["calls"].to_f
+    args["AvgDurationS"] = avg_s
+    args["grid_dim"] = info["dims"][0]
+    args["block_dim"] = info["dims"][1]
+  end
   event["args"] = args
 end
 
@@ -56,6 +73,64 @@ def is_fake_kernel_b(event)
   return false
 end
 
+# Returns a kernel's name from its "args" string.
+def kernel_name(str)
+  if str !~ /\( kernel\(/
+    puts "Bad kernel args string: " + str
+    exit 1
+  end
+  # Chop "( kernel(" off the start
+  current_index = 9
+  close_parens_needed = 1
+  while true
+    char = str[current_index]
+    if char == "("
+      close_parens_needed += 1
+    elsif char == ")"
+      close_parens_needed -= 1
+      break if close_parens_needed == 0
+    end
+    current_index += 1
+  end
+  str[9...current_index]
+end
+
+# Returns block and grid dimensions: [[gridX, gridY, gridZ],
+# [blockX, blockY, blockZ]]
+def grid_dims(str)
+  grid = [0, 0, 0]
+  block = [0, 0, 0]
+  if str =~ / globalWorkSizeX\((\d+)\) globalWorkSizeY\((\d+)\) globalWorkSizeZ\((\d+)\) /
+    grid[0] = $1.to_i
+    grid[1] = $2.to_i
+    grid[2] = $3.to_i
+  end
+  if str =~ / blockDimX\((\d+)\) blockDimY\((\d+)\) blockDimZ\((\d+)\) /
+    block[0] = $1.to_i
+    block[1] = $2.to_i
+    block[2] = $3.to_i
+  end
+  return [grid, block]
+end
+
+# Updates the dict mapping kernel IDs -> time info.
+def update_kernel_time_info(info, event)
+  return if !event["name"].include?("LaunchKernel")
+  args = event["args"]["args"]
+  name = kernel_name(args)
+  dims = grid_dims(args)
+  id = name + dims.to_s
+  if !info.include?(id)
+    new_info = {"id"=>id, "dims"=>dims, "clean_name"=>name, "calls"=>0,
+      "total_time"=>0.0}
+    info[id] = new_info
+  end
+  start_s = event["args"]["BeginNs"].to_i.to_f / 1.0e9
+  end_s = event["args"]["EndNs"].to_i.to_f / 1.0e9
+  info[id]["calls"] += 1
+  info[id]["total_time"] += (end_s - start_s)
+end
+
 if ARGV.size != 2
   puts "Usage: ruby #{$0} <input file.json> <output_file.json>"
   exit 1
@@ -68,24 +143,39 @@ puts "Got %d events in input file." % [content["traceEvents"].size]
 base_time = get_earliest_time(content["traceEvents"])
 puts "Base time " + base_time.to_s
 filtered_content = {}
-filtered_content["otherData"] = content["otherData"]
+# Uncomment if we want this stuff.
+# filtered_content["otherData"] = content["otherData"]
 filtered_events = []
 
-# We'll only keep stuff found after FakeKernelA
-kernel_a_found = false
+# We'll only keep events after the *second* FakeKernelA, but we'll start taking
+# average kernel time after the first.
+kernel_a_count = 0
+kernel_time_info = {}
 
 content["traceEvents"].each do |event|
-  if !kernel_a_found
-    # We don't bother including FakeKernelA in the filtered output.
-    kernel_a_found = is_fake_kernel_a(event)
+  # Start by looking for the first FakeKernelA
+  if kernel_a_count == 0
+    kernel_a_count += 1 if is_fake_kernel_a(event)
     next
   end
+
+  # Next, gather average performance info until the next FakeKernelA
+  if kernel_a_count == 1
+    if is_fake_kernel_a(event)
+      kernel_a_count += 1
+      next
+    end
+    update_kernel_time_info(kernel_time_info, event)
+    next
+  end
+
+  # Finally, record events that pass the filter.
   next if !passes_filter(event)
   # We don't bother including FakeKernelB in the filtered output, either.
   break if is_fake_kernel_b(event)
 
   # We've seen fake_kernel_a and we're keeping this event.
-  update_arg_times(event, base_time)
+  update_arg_times(event, base_time, kernel_time_info)
   filtered_events << event
 end
 filtered_content["traceEvents"] = filtered_events

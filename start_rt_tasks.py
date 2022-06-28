@@ -71,6 +71,9 @@ class FakeArgs:
         self.task_index = 0
         self.experiment_name = ""
         self.do_kutrace = False
+        self.no_preload_dataset = False
+        self.preload_gpu_memory = False
+        self.insert_trace_marks = False
         # No deadline by default.
         self.relative_deadline = -1.0
         for key in config:
