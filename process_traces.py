@@ -44,9 +44,9 @@ def get_line_styles():
     line_styles.append({"color": "blue", "linestyle": "-", "markevery": 0.075,
         "markersize": 5, "marker": "o"})
     line_styles.append({"color": "green", "linestyle": "--",
-        "markevery": 0.075, "markersize": 8, "marker": ">"})
+        "markevery": 0.075, "markersize": 6, "marker": ">"})
     line_styles.append({"color": "k", "linestyle": "-.", "markevery": 0.075,
-        "markersize": 8, "marker": "*"})
+        "markersize": 6, "marker": "*"})
     line_styles.append({"color": "grey", "linestyle": "--"})
     line_styles.append({"color": "k", "linestyle": "-",
         "dashes": [8, 4, 2, 4, 2, 4]})
@@ -158,8 +158,8 @@ def table_from_files(filenames, batch_sizes, width_mults):
     job time for each filename. """
     print(r'\begin{tabular}{|c|c|c|c|}')
     print(r'\hline')
-    print(r'\multirow{2}*{Batch Size} & \multirow{2}*{Width Mult.} & Mean Total & Total Job \\')
-    print(r' & & Kernel Time (ms) & Time (ms) \\')
+    print(r'\multirow{2}*{Batch Size} & Width & Mean Total & Mean Job \\')
+    print(r' & Multiplier & Kernel Time (ms) & Time (ms) \\')
     print(r'\hline')
     for i in range(len(filenames)):
         print_table_line(filenames[i], batch_sizes[i], width_mults[i])
@@ -181,11 +181,13 @@ labels = [
 figs.append(plot_from_files(filenames, labels))
 
 filenames = [
+    "16_batch.json",
     "full_width.json",
     "64_batch.json",
     "128_batch.json",
 ]
 labels = [
+    "Batch Size = 16",
     "Batch Size = 32",
     "Batch Size = 64",
     "Batch Size = 128",
@@ -194,13 +196,23 @@ figs.append(plot_from_files(filenames, labels))
 plot.show()
 
 filenames = [
+    "8_batch.json",
+    "16_batch.json",
     "full_width.json",
     "64_batch.json",
     "128_batch.json",
+    "50_width_8_batch.json",
+    "50_width_16_batch.json",
+    "50_width.json",
+    "50_width_64_batch.json",
+    "50_width_128_batch.json",
+    "25_width_8_batch.json",
+    "25_width_16_batch.json",
     "25_width.json",
     "25_width_64_batch.json",
     "25_width_128_batch.json",
 ]
-table_from_files(filenames, [32, 64, 128, 32, 64, 128],
-    [1.0, 1.0, 1.0, 0.25, 0.25, 0.25])
+tmp1 = [8, 16, 32, 64, 128]
+tmp2 = [1.0] * 5 + [0.5] * 5 + [0.25] * 5
+table_from_files(filenames, tmp1 * 3, tmp2)
 

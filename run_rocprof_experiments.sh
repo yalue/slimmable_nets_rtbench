@@ -5,9 +5,19 @@
 ./run_with_rocprof.sh 50_width --width_mult 0.50 --use_data_blobs
 ./run_with_rocprof.sh 25_width --width_mult 0.25 --use_data_blobs
 
+./run_with_rocprof.sh 8_batch --batch_size 8 --use_data_blobs
+./run_with_rocprof.sh 16_batch --batch_size 16 --use_data_blobs
 ./run_with_rocprof.sh 64_batch --batch_size 64 --use_data_blobs
 ./run_with_rocprof.sh 128_batch --batch_size 128 --use_data_blobs
 
+./run_with_rocprof.sh 50_width_8_batch --batch_size 8 --width_mult 0.50 --use_data_blobs
+./run_with_rocprof.sh 50_width_16_batch --batch_size 16 --width_mult 0.50 --use_data_blobs
+./run_with_rocprof.sh 50_width_64_batch --batch_size 64 --width_mult 0.50 --use_data_blobs
+./run_with_rocprof.sh 50_width_128_batch --batch_size 128 --width_mult 0.50 --use_data_blobs
+
+
+./run_with_rocprof.sh 25_width_8_batch --batch_size 8 --width_mult 0.25 --use_data_blobs
+./run_with_rocprof.sh 25_width_16_batch --batch_size 16 --width_mult 0.25 --use_data_blobs
 ./run_with_rocprof.sh 25_width_64_batch --batch_size 64 --width_mult 0.25 --use_data_blobs
 ./run_with_rocprof.sh 25_width_128_batch --batch_size 128 --width_mult 0.25 --use_data_blobs
 
