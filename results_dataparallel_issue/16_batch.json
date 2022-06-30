@@ -1,0 +1,4068 @@
+{
+  "traceEvents": [
+    {
+      "ph": "X",
+      "name": "hipDeviceSynchronize",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773683281",
+      "dur": "19",
+      "args": {
+        "BeginNs": "1298773683281150",
+        "EndNs": "1298773683300607",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipDeviceSynchronize",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "19457",
+        "BeginS": 11.984290364896879,
+        "EndS": 11.984309821855277
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipMemcpyWithStream",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773683491",
+      "dur": "1413",
+      "args": {
+        "BeginNs": "1298773683491093",
+        "EndNs": "1298773684904774",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipMemcpyWithStream",
+        "args": "( dst(0x7fa9e53e8000) src(0x7fabfc790000) sizeBytes(9633792) kind(1) stream(1))",
+        "Data": "",
+        "DurationNs": "1413681",
+        "BeginS": 11.98450030805543,
+        "EndS": 11.985913988901302
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipMemcpyWithStream",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773684989",
+      "dur": "45",
+      "args": {
+        "BeginNs": "1298773684989624",
+        "EndNs": "1298773685035165",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipMemcpyWithStream",
+        "args": "( dst(0x7fa9e60a5800) src(0x7face1b5a180) sizeBytes(128) kind(1) stream(1))",
+        "Data": "",
+        "DurationNs": "45541",
+        "BeginS": 11.985998838907108,
+        "EndS": 11.986044379882514
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773692247",
+      "dur": "12",
+      "args": {
+        "BeginNs": "1298773692247499",
+        "EndNs": "1298773692260128",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(miopenSp3AsmConv_v21_1_2_gfx9_fp32_stride2) f(0x55eac34cca40) globalWorkSizeX(30720) globalWorkSizeY(1) globalWorkSizeZ(1) blockDimX(512) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "12629",
+        "ActualDuration": 0.000171679,
+        "BeginS": 11.993256713962182,
+        "EndS": 11.993269342929125,
+        "AvgDurationS": 0.0001714341212121212,
+        "grid_dim": [
+          30720,
+          1,
+          1
+        ],
+        "block_dim": [
+          512,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773692462",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773692462713",
+        "EndNs": "1298773692473451",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(32) globalWorkSizeY(12544) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10738",
+        "ActualDuration": 7.264e-05,
+        "BeginS": 11.993471927940845,
+        "EndS": 11.9934826658573,
+        "AvgDurationS": 7.267380808080807e-05,
+        "grid_dim": [
+          32,
+          12544,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773692540",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773692540687",
+        "EndNs": "1298773692549130",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e19a98) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8443",
+        "ActualDuration": 6.368e-05,
+        "BeginS": 11.993549901992083,
+        "EndS": 11.993558344896883,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773692553",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773692553776",
+        "EndNs": "1298773692554718",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "942",
+        "BeginS": 11.993562991032377,
+        "EndS": 11.993563933065161
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773692746",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773692746691",
+        "EndNs": "1298773692757221",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenConvUni) f(0x55eac3505720) globalWorkSizeX(4096) globalWorkSizeY(32) globalWorkSizeZ(16) blockDimX(256) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10530",
+        "ActualDuration": 0.00011168,
+        "BeginS": 11.993755905888975,
+        "EndS": 11.993766435887665,
+        "AvgDurationS": 0.00011149076767676769,
+        "grid_dim": [
+          4096,
+          32,
+          16
+        ],
+        "block_dim": [
+          256,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773692974",
+      "dur": "9",
+      "args": {
+        "BeginNs": "1298773692974635",
+        "EndNs": "1298773692984528",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(32) globalWorkSizeY(12544) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "9893",
+        "ActualDuration": 7.184e-05,
+        "BeginS": 11.99398384988308,
+        "EndS": 11.993993742857128,
+        "AvgDurationS": 7.267380808080807e-05,
+        "grid_dim": [
+          32,
+          12544,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773693052",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773693052844",
+        "EndNs": "1298773693061165",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8321",
+        "ActualDuration": 6.576e-05,
+        "BeginS": 11.994062058860436,
+        "EndS": 11.99407037999481,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773693065",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773693065808",
+        "EndNs": "1298773693066777",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "969",
+        "BeginS": 11.994075022870675,
+        "EndS": 11.994075991911814
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipExtModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773693249",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773693249057",
+        "EndNs": "1298773693259512",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipExtModuleLaunchKernel",
+        "args": "( kernel(Cijk_Ailk_Bljk_SB_MT128x64x8_SE_1LDSB0_APM1_AF0EM1_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM1_BL1_DTL0_DVO0_EPS1_FL0_GRVW4_GSU1_ISA906_IU1_K1_KLA_LBSPP0_LPA0_LPB0_LDL1_LRVW4_MDA2_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR1_RK0_SIA1_SU32_SUM0_SUS256_SRVW0_SVW4_SNLL0_TT8_4_TLDS0_USFGRO0_VAW1_VS1_VW4_WSGRA0_WSGRB0_WG16_16_1_WGM1) f(0x55eb221e6200) globalWorkSizeX(25088) globalWorkSizeY(1) globalWorkSizeZ(16) localWorkSizeX(256) localWorkSizeY(1) localWorkSizeZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0) flags(0))",
+        "Data": "",
+        "DurationNs": "10455",
+        "ActualDuration": 0.00012736,
+        "BeginS": 11.994258271995932,
+        "EndS": 11.994268727023154,
+        "AvgDurationS": 0.00012402722222222223,
+        "grid_dim": [
+          25088,
+          1,
+          16
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773693471",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773693471313",
+        "EndNs": "1298773693481500",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(64) globalWorkSizeY(12544) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10187",
+        "ActualDuration": 0.00013424,
+        "BeginS": 11.994480527937412,
+        "EndS": 11.994490714976564,
+        "AvgDurationS": 0.00013463744444444441,
+        "grid_dim": [
+          64,
+          12544,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773693548",
+      "dur": "7",
+      "args": {
+        "BeginNs": "1298773693548291",
+        "EndNs": "1298773693556014",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "7723",
+        "ActualDuration": 0.00012304,
+        "BeginS": 11.994557505939156,
+        "EndS": 11.994565228931606,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773693560",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773693560227",
+        "EndNs": "1298773693561086",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "859",
+        "BeginS": 11.994569442002103,
+        "EndS": 11.994570300914347
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773693743",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773693743497",
+        "EndNs": "1298773693753657",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(naive_conv_fwd_nchw_fp32) f(0x55eac9dc9800) globalWorkSizeX(262144) globalWorkSizeY(1) globalWorkSizeZ(1) blockDimX(256) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10160",
+        "ActualDuration": 0.000230079,
+        "BeginS": 11.994752711849287,
+        "EndS": 11.994762871880084,
+        "AvgDurationS": 0.00023552451515151517,
+        "grid_dim": [
+          262144,
+          1,
+          1
+        ],
+        "block_dim": [
+          256,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773693964",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773693964961",
+        "EndNs": "1298773693975046",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(64) globalWorkSizeY(3328) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10085",
+        "ActualDuration": 3.808e-05,
+        "BeginS": 11.994974175933748,
+        "EndS": 11.994984260993078,
+        "AvgDurationS": 4.1661303030303046e-05,
+        "grid_dim": [
+          64,
+          3328,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773694054",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773694054854",
+        "EndNs": "1298773694063031",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8177",
+        "ActualDuration": 3.424e-05,
+        "BeginS": 11.995064069051296,
+        "EndS": 11.9950722460635,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773694067",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773694067615",
+        "EndNs": "1298773694068586",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "971",
+        "BeginS": 11.995076830033213,
+        "EndS": 11.995077800936997
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773694254",
+      "dur": "9",
+      "args": {
+        "BeginNs": "1298773694254523",
+        "EndNs": "1298773694264157",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(igemm_v4r1_dynamic_128x128x16_8x8_4x4x4x4x4x4_16x1x16x1_4x64) f(0x55eac9eef870) globalWorkSizeX(100352) globalWorkSizeY(1) globalWorkSizeZ(1) blockDimX(256) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "9634",
+        "ActualDuration": 0.00012896,
+        "BeginS": 11.995263737859204,
+        "EndS": 11.995273371925578,
+        "AvgDurationS": 0.00013309240404040405,
+        "grid_dim": [
+          100352,
+          1,
+          1
+        ],
+        "block_dim": [
+          256,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773694472",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773694472908",
+        "EndNs": "1298773694483191",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(128) globalWorkSizeY(3328) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10283",
+        "ActualDuration": 7.2639e-05,
+        "BeginS": 11.995482122991234,
+        "EndS": 11.995492405956611,
+        "AvgDurationS": 7.238886531986531e-05,
+        "grid_dim": [
+          128,
+          3328,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773694547",
+      "dur": "7",
+      "args": {
+        "BeginNs": "1298773694547840",
+        "EndNs": "1298773694555722",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "7882",
+        "ActualDuration": 6.544e-05,
+        "BeginS": 11.995557054877281,
+        "EndS": 11.99556493689306,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773694559",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773694559901",
+        "EndNs": "1298773694560712",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "811",
+        "BeginS": 11.995569115970284,
+        "EndS": 11.995569926919416
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773694745",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773694745299",
+        "EndNs": "1298773694755889",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenConvUni) f(0x55eac9e84f80) globalWorkSizeX(1024) globalWorkSizeY(128) globalWorkSizeZ(16) blockDimX(256) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10590",
+        "ActualDuration": 0.00011728,
+        "BeginS": 11.995754513889551,
+        "EndS": 11.995765103958547,
+        "AvgDurationS": 0.00011692267676767683,
+        "grid_dim": [
+          1024,
+          128,
+          16
+        ],
+        "block_dim": [
+          256,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773694965",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773694965034",
+        "EndNs": "1298773694975275",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(128) globalWorkSizeY(3328) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10241",
+        "ActualDuration": 7.088e-05,
+        "BeginS": 11.995974248973653,
+        "EndS": 11.995984490029514,
+        "AvgDurationS": 7.238886531986531e-05,
+        "grid_dim": [
+          128,
+          3328,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773695045",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773695045346",
+        "EndNs": "1298773695053447",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8101",
+        "ActualDuration": 6.384e-05,
+        "BeginS": 11.996054560877383,
+        "EndS": 11.996062661986798,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773695064",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773695064690",
+        "EndNs": "1298773695065636",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "946",
+        "BeginS": 11.996073904912919,
+        "EndS": 11.996074850903824
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773695250",
+      "dur": "9",
+      "args": {
+        "BeginNs": "1298773695250282",
+        "EndNs": "1298773695259986",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(igemm_v4r1_1x1_dynamic_128x128x16_8x8_4x4x4x4x4x4_16x1x16x1_4x64) f(0x55eac9f0b8f0) globalWorkSizeX(100352) globalWorkSizeY(1) globalWorkSizeZ(1) blockDimX(256) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "9704",
+        "ActualDuration": 0.00020272,
+        "BeginS": 11.996259497012943,
+        "EndS": 11.99626920092851,
+        "AvgDurationS": 0.00020376511111111115,
+        "grid_dim": [
+          100352,
+          1,
+          1
+        ],
+        "block_dim": [
+          256,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773695462",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773695462260",
+        "EndNs": "1298773695472793",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(128) globalWorkSizeY(3328) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10533",
+        "ActualDuration": 7.216e-05,
+        "BeginS": 11.99647147487849,
+        "EndS": 11.996482007903978,
+        "AvgDurationS": 7.238886531986531e-05,
+        "grid_dim": [
+          128,
+          3328,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773695547",
+      "dur": "14",
+      "args": {
+        "BeginNs": "1298773695547245",
+        "EndNs": "1298773695561819",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "14574",
+        "ActualDuration": 6.496e-05,
+        "BeginS": 11.996556459926069,
+        "EndS": 11.996571033960208,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773695566",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773695566188",
+        "EndNs": "1298773695566994",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "806",
+        "BeginS": 11.996575403027236,
+        "EndS": 11.996576208854094
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773695744",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773695744342",
+        "EndNs": "1298773695755239",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(naive_conv_fwd_nchw_fp32) f(0x55eac9dc9800) globalWorkSizeX(524288) globalWorkSizeY(1) globalWorkSizeZ(1) blockDimX(256) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10897",
+        "ActualDuration": 0.000122399,
+        "BeginS": 11.996753556886688,
+        "EndS": 11.996764454059303,
+        "AvgDurationS": 0.00012166933333333339,
+        "grid_dim": [
+          524288,
+          1,
+          1
+        ],
+        "block_dim": [
+          256,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773695988",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773695988327",
+        "EndNs": "1298773695999367",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(128) globalWorkSizeY(1024) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11040",
+        "ActualDuration": 2.08e-05,
+        "BeginS": 11.996997541980818,
+        "EndS": 11.997008581878617,
+        "AvgDurationS": 2.0534898989899003e-05,
+        "grid_dim": [
+          128,
+          1024,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773696072",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773696072540",
+        "EndNs": "1298773696080879",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8339",
+        "ActualDuration": 2.0e-05,
+        "BeginS": 11.997081754961982,
+        "EndS": 11.997090094024315,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773696085",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773696085335",
+        "EndNs": "1298773696086302",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "967",
+        "BeginS": 11.997094549937174,
+        "EndS": 11.997095516882837
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773696256",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773696256526",
+        "EndNs": "1298773696266845",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenConv1x1) f(0x55eac9ef7920) globalWorkSizeX(200704) globalWorkSizeY(1) globalWorkSizeZ(1) blockDimX(64) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10319",
+        "ActualDuration": 0.00013312,
+        "BeginS": 11.997265740996227,
+        "EndS": 11.997276060050353,
+        "AvgDurationS": 0.00013344798989898987,
+        "grid_dim": [
+          200704,
+          1,
+          1
+        ],
+        "block_dim": [
+          64,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773696479",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773696479826",
+        "EndNs": "1298773696490208",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(256) globalWorkSizeY(1024) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10382",
+        "ActualDuration": 3.968e-05,
+        "BeginS": 11.997489040950313,
+        "EndS": 11.997499422868714,
+        "AvgDurationS": 3.9593720538720545e-05,
+        "grid_dim": [
+          256,
+          1024,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773696561",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773696561487",
+        "EndNs": "1298773696569784",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8297",
+        "ActualDuration": 3.456e-05,
+        "BeginS": 11.997570701874793,
+        "EndS": 11.99757899902761,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773696576",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773696576455",
+        "EndNs": "1298773696577275",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "820",
+        "BeginS": 11.997585669858381,
+        "EndS": 11.997586489887908
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773696754",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773696754018",
+        "EndNs": "1298773696764698",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenConvUni) f(0x55eb13855fa0) globalWorkSizeX(256) globalWorkSizeY(256) globalWorkSizeZ(16) blockDimX(256) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10680",
+        "ActualDuration": 5.776e-05,
+        "BeginS": 11.99776323302649,
+        "EndS": 11.997773912968114,
+        "AvgDurationS": 5.782773737373734e-05,
+        "grid_dim": [
+          256,
+          256,
+          16
+        ],
+        "block_dim": [
+          256,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773696976",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773696976110",
+        "EndNs": "1298773696986407",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(256) globalWorkSizeY(1024) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10297",
+        "ActualDuration": 3.92e-05,
+        "BeginS": 11.997985325055197,
+        "EndS": 11.997995621990412,
+        "AvgDurationS": 3.9593720538720545e-05,
+        "grid_dim": [
+          256,
+          1024,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773697057",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773697057311",
+        "EndNs": "1298773697066175",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8864",
+        "ActualDuration": 3.424e-05,
+        "BeginS": 11.998066525906324,
+        "EndS": 11.998075390001759,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773697070",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773697070572",
+        "EndNs": "1298773697071554",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "982",
+        "BeginS": 11.998079787008464,
+        "EndS": 11.998080768855289
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipExtModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773697244",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773697244528",
+        "EndNs": "1298773697255388",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipExtModuleLaunchKernel",
+        "args": "( kernel(Cijk_Ailk_Bljk_SB_MT64x64x16_SN_1LDSB0_APM1_AF0EM1_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM1_BL1_DTL0_DVO0_EPS1_FL0_GRVW4_GSU1_ISA906_IU1_K1_KLA_LBSPP0_LPA0_LPB0_LDL1_LRVW4_MDA2_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR1_RK0_SIA1_SU32_SUM0_SUS256_SRVW0_SVW4_SNLL0_TT4_4_TLDS0_USFGRO0_VAW1_VS1_VW4_WSGRA0_WSGRB0_WG16_16_1_WGM1) f(0x55eacab722c0) globalWorkSizeX(3328) globalWorkSizeY(4) globalWorkSizeZ(16) localWorkSizeX(256) localWorkSizeY(1) localWorkSizeZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0) flags(0))",
+        "Data": "",
+        "DurationNs": "10860",
+        "ActualDuration": 0.000188,
+        "BeginS": 11.99825374293141,
+        "EndS": 11.998264602851123,
+        "AvgDurationS": 0.0001880449393939395,
+        "grid_dim": [
+          3328,
+          4,
+          16
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773697475",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773697475835",
+        "EndNs": "1298773697486675",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(256) globalWorkSizeY(1024) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10840",
+        "ActualDuration": 3.968e-05,
+        "BeginS": 11.998485049931332,
+        "EndS": 11.99849589006044,
+        "AvgDurationS": 3.9593720538720545e-05,
+        "grid_dim": [
+          256,
+          1024,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773697557",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773697557614",
+        "EndNs": "1298773697565857",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8243",
+        "ActualDuration": 3.424e-05,
+        "BeginS": 11.998566828900948,
+        "EndS": 11.998575072037056,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773697572",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773697572821",
+        "EndNs": "1298773697573758",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "937",
+        "BeginS": 11.998582036001608,
+        "EndS": 11.998582972912118
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773697752",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773697752696",
+        "EndNs": "1298773697762888",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(naive_conv_fwd_nchw_fp32) f(0x55eac9dc9800) globalWorkSizeX(1048576) globalWorkSizeY(1) globalWorkSizeZ(1) blockDimX(256) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10192",
+        "ActualDuration": 8.144e-05,
+        "BeginS": 11.998761910945177,
+        "EndS": 11.998772102873772,
+        "AvgDurationS": 8.146257575757588e-05,
+        "grid_dim": [
+          1048576,
+          1,
+          1
+        ],
+        "block_dim": [
+          256,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773697973",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773697973709",
+        "EndNs": "1298773697984401",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(256) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10692",
+        "ActualDuration": 1.552e-05,
+        "BeginS": 11.998982924036682,
+        "EndS": 11.998993615852669,
+        "AvgDurationS": 1.5098161616161624e-05,
+        "grid_dim": [
+          256,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773698054",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773698054994",
+        "EndNs": "1298773698063256",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8262",
+        "ActualDuration": 1.088e-05,
+        "BeginS": 11.999064208939672,
+        "EndS": 11.999072470935062,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773698067",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773698067839",
+        "EndNs": "1298773698068734",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "895",
+        "BeginS": 11.999077053973451,
+        "EndS": 11.999077948974445
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773698241",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773698241746",
+        "EndNs": "1298773698252211",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(gridwise_convolution_implicit_gemm_v4r1_nchw_kcyx_nkhw_lds_double_buffer) f(0x55eacab83610) globalWorkSizeX(100352) globalWorkSizeY(1) globalWorkSizeZ(1) blockDimX(256) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10465",
+        "ActualDuration": 0.00010944,
+        "BeginS": 11.999250961001962,
+        "EndS": 11.999261426040903,
+        "AvgDurationS": 0.0001100120101010101,
+        "grid_dim": [
+          100352,
+          1,
+          1
+        ],
+        "block_dim": [
+          256,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773698461",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773698461369",
+        "EndNs": "1298773698471954",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10585",
+        "ActualDuration": 2.144e-05,
+        "BeginS": 11.999470583861694,
+        "EndS": 11.999481169041246,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773698544",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773698544762",
+        "EndNs": "1298773698553294",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8532",
+        "ActualDuration": 2.016e-05,
+        "BeginS": 11.999553977046162,
+        "EndS": 11.999562508892268,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773698557",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773698557833",
+        "EndNs": "1298773698558743",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "910",
+        "BeginS": 11.999567047925666,
+        "EndS": 11.999567958060652
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773698734",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773698734691",
+        "EndNs": "1298773698744885",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenConvUni) f(0x55eacab922e0) globalWorkSizeX(64) globalWorkSizeY(512) globalWorkSizeZ(16) blockDimX(64) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10194",
+        "ActualDuration": 3.728e-05,
+        "BeginS": 11.999743905849755,
+        "EndS": 11.999754099873826,
+        "AvgDurationS": 3.6108880808080864e-05,
+        "grid_dim": [
+          64,
+          512,
+          16
+        ],
+        "block_dim": [
+          64,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773698957",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773698957032",
+        "EndNs": "1298773698967498",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10466",
+        "ActualDuration": 2.128e-05,
+        "BeginS": 11.99996624700725,
+        "EndS": 11.999976712977514,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773699041",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773699041698",
+        "EndNs": "1298773699050670",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8972",
+        "ActualDuration": 1.984e-05,
+        "BeginS": 12.000050912844017,
+        "EndS": 12.00005988497287,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773699055",
+      "dur": "1",
+      "args": {
+        "BeginNs": "1298773699055177",
+        "EndNs": "1298773699056206",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "1029",
+        "BeginS": 12.00006439187564,
+        "EndS": 12.000065420987085
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipExtModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773699229",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773699229909",
+        "EndNs": "1298773699240858",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipExtModuleLaunchKernel",
+        "args": "( kernel(Cijk_Ailk_Bljk_SB_MT32x32x32_SE_1LDSB0_APM1_AF0EM1_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM1_BL1_DTL0_DVO0_EPS1_FL1_GRVW2_GSU1_ISA906_IU1_K1_KLA_LBSPP0_LPA0_LPB2_LDL1_LRVW2_MDA2_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR1_RK0_SIA1_SU32_SUM0_SUS256_SRVW0_SVW4_SNLL1_TT4_4_TLDS0_USFGRO0_VAW1_VS1_VW2_WSGRA0_WSGRB0_WG8_8_4_WGM1) f(0x55eacab86ef0) globalWorkSizeX(1792) globalWorkSizeY(16) globalWorkSizeZ(16) localWorkSizeX(256) localWorkSizeY(1) localWorkSizeZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0) flags(0))",
+        "Data": "",
+        "DurationNs": "10949",
+        "ActualDuration": 0.00027792,
+        "BeginS": 12.000239124055952,
+        "EndS": 12.00025007291697,
+        "AvgDurationS": 0.0002759388101010103,
+        "grid_dim": [
+          1792,
+          16,
+          16
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773699447",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773699447453",
+        "EndNs": "1298773699457868",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10415",
+        "ActualDuration": 2.128e-05,
+        "BeginS": 12.000456667970866,
+        "EndS": 12.000467082951218,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773699524",
+      "dur": "15",
+      "args": {
+        "BeginNs": "1298773699524396",
+        "EndNs": "1298773699539705",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "15309",
+        "ActualDuration": 1.984e-05,
+        "BeginS": 12.000533611048013,
+        "EndS": 12.000548919895664,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773699544",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773699544214",
+        "EndNs": "1298773699545140",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "926",
+        "BeginS": 12.000553428893909,
+        "EndS": 12.000554354861379
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773699731",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773699731388",
+        "EndNs": "1298773699742335",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenConvUni) f(0x55eacab922e0) globalWorkSizeX(64) globalWorkSizeY(512) globalWorkSizeZ(16) blockDimX(64) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10947",
+        "ActualDuration": 3.632e-05,
+        "BeginS": 12.000740602845326,
+        "EndS": 12.000751549843699,
+        "AvgDurationS": 3.6108880808080864e-05,
+        "grid_dim": [
+          64,
+          512,
+          16
+        ],
+        "block_dim": [
+          64,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773699999",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773699999579",
+        "EndNs": "1298773700010894",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11315",
+        "ActualDuration": 2.192e-05,
+        "BeginS": 12.001008793944493,
+        "EndS": 12.001020109048113,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773700081",
+      "dur": "9",
+      "args": {
+        "BeginNs": "1298773700081262",
+        "EndNs": "1298773700090436",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "9174",
+        "ActualDuration": 1.984e-05,
+        "BeginS": 12.001090476987883,
+        "EndS": 12.001099650980905,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773700095",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773700095050",
+        "EndNs": "1298773700095936",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "886",
+        "BeginS": 12.00110426498577,
+        "EndS": 12.001105150906369
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipExtModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773700269",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773700269578",
+        "EndNs": "1298773700280894",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipExtModuleLaunchKernel",
+        "args": "( kernel(Cijk_Ailk_Bljk_SB_MT32x32x32_SE_1LDSB0_APM1_AF0EM1_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM1_BL1_DTL0_DVO0_EPS1_FL1_GRVW2_GSU1_ISA906_IU1_K1_KLA_LBSPP0_LPA0_LPB2_LDL1_LRVW2_MDA2_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR1_RK0_SIA1_SU32_SUM0_SUS256_SRVW0_SVW4_SNLL1_TT4_4_TLDS0_USFGRO0_VAW1_VS1_VW2_WSGRA0_WSGRB0_WG8_8_4_WGM1) f(0x55eacab86ef0) globalWorkSizeX(1792) globalWorkSizeY(16) globalWorkSizeZ(16) localWorkSizeX(256) localWorkSizeY(1) localWorkSizeZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0) flags(0))",
+        "Data": "",
+        "DurationNs": "11316",
+        "ActualDuration": 0.000275039,
+        "BeginS": 12.001278792973608,
+        "EndS": 12.00129010900855,
+        "AvgDurationS": 0.0002759388101010103,
+        "grid_dim": [
+          1792,
+          16,
+          16
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773700495",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773700495554",
+        "EndNs": "1298773700506725",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11171",
+        "ActualDuration": 2.096e-05,
+        "BeginS": 12.001504768850282,
+        "EndS": 12.001515940064564,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773700572",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773700572562",
+        "EndNs": "1298773700582620",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "10058",
+        "ActualDuration": 1.936e-05,
+        "BeginS": 12.001581776887178,
+        "EndS": 12.001591834938154,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773700587",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773700587375",
+        "EndNs": "1298773700588309",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "934",
+        "BeginS": 12.001596590038389,
+        "EndS": 12.0015975239221
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773700772",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773700772054",
+        "EndNs": "1298773700782779",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenConvUni) f(0x55eacab922e0) globalWorkSizeX(64) globalWorkSizeY(512) globalWorkSizeZ(16) blockDimX(64) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10725",
+        "ActualDuration": 3.536e-05,
+        "BeginS": 12.001781268976629,
+        "EndS": 12.001791993854567,
+        "AvgDurationS": 3.6108880808080864e-05,
+        "grid_dim": [
+          64,
+          512,
+          16
+        ],
+        "block_dim": [
+          64,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773700981",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773700981799",
+        "EndNs": "1298773700992898",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11099",
+        "ActualDuration": 2.176e-05,
+        "BeginS": 12.001991013996303,
+        "EndS": 12.002002113033086,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773701061",
+      "dur": "9",
+      "args": {
+        "BeginNs": "1298773701061540",
+        "EndNs": "1298773701070633",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "9093",
+        "ActualDuration": 2.032e-05,
+        "BeginS": 12.002070754999295,
+        "EndS": 12.002079847967252,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773701075",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773701075139",
+        "EndNs": "1298773701076074",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "935",
+        "BeginS": 12.002084353938699,
+        "EndS": 12.002085288986564
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipExtModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773701247",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773701247581",
+        "EndNs": "1298773701259050",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipExtModuleLaunchKernel",
+        "args": "( kernel(Cijk_Ailk_Bljk_SB_MT32x32x32_SE_1LDSB0_APM1_AF0EM1_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM1_BL1_DTL0_DVO0_EPS1_FL1_GRVW2_GSU1_ISA906_IU1_K1_KLA_LBSPP0_LPA0_LPB2_LDL1_LRVW2_MDA2_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR1_RK0_SIA1_SU32_SUM0_SUS256_SRVW0_SVW4_SNLL1_TT4_4_TLDS0_USFGRO0_VAW1_VS1_VW2_WSGRA0_WSGRB0_WG8_8_4_WGM1) f(0x55eacab86ef0) globalWorkSizeX(1792) globalWorkSizeY(16) globalWorkSizeZ(16) localWorkSizeX(256) localWorkSizeY(1) localWorkSizeZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0) flags(0))",
+        "Data": "",
+        "DurationNs": "11469",
+        "ActualDuration": 0.00027456,
+        "BeginS": 12.0022567959968,
+        "EndS": 12.002268265001476,
+        "AvgDurationS": 0.0002759388101010103,
+        "grid_dim": [
+          1792,
+          16,
+          16
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773701470",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773701470951",
+        "EndNs": "1298773701482044",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11093",
+        "ActualDuration": 2.096e-05,
+        "BeginS": 12.00248016603291,
+        "EndS": 12.002491259016097,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773701546",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773701546159",
+        "EndNs": "1298773701556817",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "10658",
+        "ActualDuration": 1.968e-05,
+        "BeginS": 12.0025553740561,
+        "EndS": 12.002566031878814,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773701561",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773701561351",
+        "EndNs": "1298773701562291",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "940",
+        "BeginS": 12.002570566022769,
+        "EndS": 12.002571505960077
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773701746",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773701746039",
+        "EndNs": "1298773701757093",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenConvUni) f(0x55eacab922e0) globalWorkSizeX(64) globalWorkSizeY(512) globalWorkSizeZ(16) blockDimX(64) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11054",
+        "ActualDuration": 3.552e-05,
+        "BeginS": 12.002755254041404,
+        "EndS": 12.002766307909042,
+        "AvgDurationS": 3.6108880808080864e-05,
+        "grid_dim": [
+          64,
+          512,
+          16
+        ],
+        "block_dim": [
+          64,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773701953",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773701953722",
+        "EndNs": "1298773701964774",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11052",
+        "ActualDuration": 2.208e-05,
+        "BeginS": 12.002962936880067,
+        "EndS": 12.00297398888506,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773702033",
+      "dur": "9",
+      "args": {
+        "BeginNs": "1298773702033403",
+        "EndNs": "1298773702042426",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "9023",
+        "ActualDuration": 2.0e-05,
+        "BeginS": 12.003042618045583,
+        "EndS": 12.003051640931517,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773702046",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773702046824",
+        "EndNs": "1298773702047755",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "931",
+        "BeginS": 12.003056038869545,
+        "EndS": 12.003056969959289
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipExtModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773702217",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773702217882",
+        "EndNs": "1298773702229122",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipExtModuleLaunchKernel",
+        "args": "( kernel(Cijk_Ailk_Bljk_SB_MT32x32x32_SE_1LDSB0_APM1_AF0EM1_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM1_BL1_DTL0_DVO0_EPS1_FL1_GRVW2_GSU1_ISA906_IU1_K1_KLA_LBSPP0_LPA0_LPB2_LDL1_LRVW2_MDA2_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR1_RK0_SIA1_SU32_SUM0_SUS256_SRVW0_SVW4_SNLL1_TT4_4_TLDS0_USFGRO0_VAW1_VS1_VW2_WSGRA0_WSGRB0_WG8_8_4_WGM1) f(0x55eacab86ef0) globalWorkSizeX(1792) globalWorkSizeY(16) globalWorkSizeZ(16) localWorkSizeX(256) localWorkSizeY(1) localWorkSizeZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0) flags(0))",
+        "Data": "",
+        "DurationNs": "11240",
+        "ActualDuration": 0.0002768,
+        "BeginS": 12.0032270969823,
+        "EndS": 12.003238336881623,
+        "AvgDurationS": 0.0002759388101010103,
+        "grid_dim": [
+          1792,
+          16,
+          16
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773702439",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773702439555",
+        "EndNs": "1298773702449725",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10170",
+        "ActualDuration": 2.112e-05,
+        "BeginS": 12.003448769915849,
+        "EndS": 12.003458939958364,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773702512",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773702512650",
+        "EndNs": "1298773702522689",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "10039",
+        "ActualDuration": 1.968e-05,
+        "BeginS": 12.003521865000948,
+        "EndS": 12.00353190395981,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773702528",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773702528502",
+        "EndNs": "1298773702529501",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "999",
+        "BeginS": 12.00353771704249,
+        "EndS": 12.003538715885952
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773702714",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773702714563",
+        "EndNs": "1298773702725546",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenConvUni) f(0x55eacab922e0) globalWorkSizeX(64) globalWorkSizeY(512) globalWorkSizeZ(16) blockDimX(64) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10983",
+        "ActualDuration": 3.616e-05,
+        "BeginS": 12.003723778063431,
+        "EndS": 12.003734760917723,
+        "AvgDurationS": 3.6108880808080864e-05,
+        "grid_dim": [
+          64,
+          512,
+          16
+        ],
+        "block_dim": [
+          64,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773702923",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773702923301",
+        "EndNs": "1298773702933956",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10655",
+        "ActualDuration": 2.224e-05,
+        "BeginS": 12.003932515857741,
+        "EndS": 12.003943170886487,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773702999",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773702999906",
+        "EndNs": "1298773703008613",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8707",
+        "ActualDuration": 1.984e-05,
+        "BeginS": 12.004009120864794,
+        "EndS": 12.004017828032374,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773703012",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773703012753",
+        "EndNs": "1298773703013578",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "825",
+        "BeginS": 12.00402196799405,
+        "EndS": 12.00402279291302
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipExtModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773703180",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773703180672",
+        "EndNs": "1298773703191925",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipExtModuleLaunchKernel",
+        "args": "( kernel(Cijk_Ailk_Bljk_SB_MT32x32x32_SE_1LDSB0_APM1_AF0EM1_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM1_BL1_DTL0_DVO0_EPS1_FL1_GRVW2_GSU1_ISA906_IU1_K1_KLA_LBSPP0_LPA0_LPB2_LDL1_LRVW2_MDA2_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR1_RK0_SIA1_SU32_SUM0_SUS256_SRVW0_SVW4_SNLL1_TT4_4_TLDS0_USFGRO0_VAW1_VS1_VW2_WSGRA0_WSGRB0_WG8_8_4_WGM1) f(0x55eacab86ef0) globalWorkSizeX(1792) globalWorkSizeY(16) globalWorkSizeZ(16) localWorkSizeX(256) localWorkSizeY(1) localWorkSizeZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0) flags(0))",
+        "Data": "",
+        "DurationNs": "11253",
+        "ActualDuration": 0.00027648,
+        "BeginS": 12.004189886851236,
+        "EndS": 12.004201140021905,
+        "AvgDurationS": 0.0002759388101010103,
+        "grid_dim": [
+          1792,
+          16,
+          16
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773703401",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773703401081",
+        "EndNs": "1298773703412134",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11053",
+        "ActualDuration": 2.112e-05,
+        "BeginS": 12.004410295980051,
+        "EndS": 12.004421348916367,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773703477",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773703477283",
+        "EndNs": "1298773703487884",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "10601",
+        "ActualDuration": 1.984e-05,
+        "BeginS": 12.00448649795726,
+        "EndS": 12.004497098969296,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773703495",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773703495704",
+        "EndNs": "1298773703496654",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "950",
+        "BeginS": 12.004504919052124,
+        "EndS": 12.00450586900115
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773703677",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773703677229",
+        "EndNs": "1298773703687814",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(naive_conv_fwd_nchw_fp32) f(0x55eac9dc9800) globalWorkSizeX(2097152) globalWorkSizeY(1) globalWorkSizeZ(1) blockDimX(256) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "10585",
+        "ActualDuration": 5.776e-05,
+        "BeginS": 12.004686443833634,
+        "EndS": 12.004697029013187,
+        "AvgDurationS": 5.787461616161616e-05,
+        "grid_dim": [
+          2097152,
+          1,
+          1
+        ],
+        "block_dim": [
+          256,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773703909",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773703909517",
+        "EndNs": "1298773703920745",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(512) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11228",
+        "ActualDuration": 1.712e-05,
+        "BeginS": 12.004918731981888,
+        "EndS": 12.004929960006848,
+        "AvgDurationS": 2.0842662457912458e-05,
+        "grid_dim": [
+          512,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773704000",
+      "dur": "9",
+      "args": {
+        "BeginNs": "1298773704000013",
+        "EndNs": "1298773704009273",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "9260",
+        "ActualDuration": 6.72e-06,
+        "BeginS": 12.005009227897972,
+        "EndS": 12.005018488038331,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773704013",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773704013758",
+        "EndNs": "1298773704014634",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "876",
+        "BeginS": 12.00502297305502,
+        "EndS": 12.005023848963901
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipExtModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773704197",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773704197030",
+        "EndNs": "1298773704208097",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipExtModuleLaunchKernel",
+        "args": "( kernel(Cijk_Ailk_Bljk_SB_MT32x16x32_SE_1LDSB0_APM1_AF0EM1_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM1_BL1_DTL0_DVO0_EPS1_FL1_GRVW2_GSU1_ISA906_IU1_K1_KLA_LBSPP0_LPA0_LPB2_LDL1_LRVW2_MDA2_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR1_RK0_SIA1_SU32_SUM0_SUS256_SRVW0_SVW4_SNLL1_TT4_2_TLDS0_USFGRO0_VAW1_VS1_VW2_WSGRA0_WSGRB0_WG8_8_4_WGM16) f(0x55eacaba0860) globalWorkSizeX(512) globalWorkSizeY(64) globalWorkSizeZ(16) localWorkSizeX(256) localWorkSizeY(1) localWorkSizeZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0) flags(0))",
+        "Data": "",
+        "DurationNs": "11067",
+        "ActualDuration": 0.00020368,
+        "BeginS": 12.00520624499768,
+        "EndS": 12.005217311903834,
+        "AvgDurationS": 0.00020285701010101003,
+        "grid_dim": [
+          512,
+          64,
+          16
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773704439",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773704439259",
+        "EndNs": "1298773704450739",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(1024) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11480",
+        "ActualDuration": 2.08e-05,
+        "BeginS": 12.005448473850265,
+        "EndS": 12.005459954030812,
+        "AvgDurationS": 2.0747164983164984e-05,
+        "grid_dim": [
+          1024,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773704522",
+      "dur": "9",
+      "args": {
+        "BeginNs": "1298773704522296",
+        "EndNs": "1298773704531668",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "9372",
+        "ActualDuration": 1.088e-05,
+        "BeginS": 12.00553151103668,
+        "EndS": 12.005540882935748,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773704539",
+      "dur": "1",
+      "args": {
+        "BeginNs": "1298773704539194",
+        "EndNs": "1298773704540278",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "1084",
+        "BeginS": 12.005548408953473,
+        "EndS": 12.00554949301295
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773704732",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773704732986",
+        "EndNs": "1298773704744139",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenConvUni) f(0x55eacaba9f70) globalWorkSizeX(64) globalWorkSizeY(1024) globalWorkSizeZ(16) blockDimX(64) blockDimY(1) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11153",
+        "ActualDuration": 4.544e-05,
+        "BeginS": 12.005742200883105,
+        "EndS": 12.005753353936598,
+        "AvgDurationS": 4.537206060606056e-05,
+        "grid_dim": [
+          64,
+          1024,
+          16
+        ],
+        "block_dim": [
+          64,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773704964",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773704964209",
+        "EndNs": "1298773704975487",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(1024) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11278",
+        "ActualDuration": 2.112e-05,
+        "BeginS": 12.005973424063995,
+        "EndS": 12.005984701914713,
+        "AvgDurationS": 2.0747164983164984e-05,
+        "grid_dim": [
+          1024,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705043",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773705043588",
+        "EndNs": "1298773705052287",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8699",
+        "ActualDuration": 1.12e-05,
+        "BeginS": 12.006052803015336,
+        "EndS": 12.006061502033845,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705056",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773705056802",
+        "EndNs": "1298773705057686",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "884",
+        "BeginS": 12.006066016852856,
+        "EndS": 12.00606690091081
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipExtModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705237",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773705237721",
+        "EndNs": "1298773705249305",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipExtModuleLaunchKernel",
+        "args": "( kernel(Cijk_Ailk_Bljk_SB_MT64x16x32_SE_1LDSB0_APM1_AF0EM1_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM1_BL1_DTL0_DVO0_EPS1_FL1_GRVW2_GSU1_ISA906_IU1_K1_KLA_LBSPP0_LPA0_LPB2_LDL1_LRVW2_MDA2_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR1_RK0_SIA1_SU32_SUM0_SUS256_SRVW0_SVW4_SNLL1_TT4_2_TLDS0_USFGRO0_VAW1_VS1_VW2_WSGRA0_WSGRB0_WG16_8_2_WGM8) f(0x55eacaba6ba0) globalWorkSizeX(256) globalWorkSizeY(64) globalWorkSizeZ(16) localWorkSizeX(256) localWorkSizeY(1) localWorkSizeZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0) flags(0))",
+        "Data": "",
+        "DurationNs": "11584",
+        "ActualDuration": 0.00040592,
+        "BeginS": 12.006246936041862,
+        "EndS": 12.006258520064875,
+        "AvgDurationS": 0.00040379415151515135,
+        "grid_dim": [
+          256,
+          64,
+          16
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipHccModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705474",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773705474529",
+        "EndNs": "1298773705485769",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipHccModuleLaunchKernel",
+        "args": "( kernel(MIOpenBatchNormFwdInferSpatialEst) f(0x55eac34cbf20) globalWorkSizeX(1024) globalWorkSizeY(256) globalWorkSizeZ(1) blockDimX(1) blockDimY(256) blockDimZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0))",
+        "Data": "",
+        "DurationNs": "11240",
+        "ActualDuration": 2.048e-05,
+        "BeginS": 12.00648374389857,
+        "EndS": 12.006494984030724,
+        "AvgDurationS": 2.0747164983164984e-05,
+        "grid_dim": [
+          1024,
+          256,
+          1
+        ],
+        "block_dim": [
+          1,
+          256,
+          1
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705554",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773705554431",
+        "EndNs": "1298773705563071",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::modern::elementwise_kernel<at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2> >(int, at::native::(anonymous namespace)::clamp_scalar_kernel_impl(at::TensorIteratorBase&, c10::Scalar const&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}, at::detail::Array<char*, 2>)) function_address(0x7fac77fcab40) numBlocks({}) dimBlocks({}) args(0x7ffd12e194a8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8640",
+        "ActualDuration": 1.088e-05,
+        "BeginS": 12.006563646020368,
+        "EndS": 12.006572285899892,
+        "AvgDurationS": 3.2502998503554255e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705570",
+      "dur": "1",
+      "args": {
+        "BeginNs": "1298773705570473",
+        "EndNs": "1298773705571506",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "1033",
+        "BeginS": 12.006579688051715,
+        "EndS": 12.00658072088845
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705645",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773705645323",
+        "EndNs": "1298773705653835",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::(anonymous namespace)::avg_pool2d_out_cuda_frame<float, float>(int, float const*, int, int, int, int, int, int, int, int, int, int, int, int, float*, int, bool, bool)) function_address(0x7fac7723fa90) numBlocks({}) dimBlocks({}) args(0x7ffd12e1a694) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8512",
+        "ActualDuration": 5.52e-05,
+        "BeginS": 12.006654537981376,
+        "EndS": 12.006663050036877,
+        "AvgDurationS": 5.371304040404043e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705658",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773705658639",
+        "EndNs": "1298773705659588",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "949",
+        "BeginS": 12.006667854031548,
+        "EndS": 12.006668803049251
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705819",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773705819121",
+        "EndNs": "1298773705830267",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::legacy::elementwise_kernel<128, 4, at::native::gpu_kernel_impl<at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}>(at::TensorIteratorBase&, at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1} const&)::{lambda(int)#4}>(int, at::native::gpu_kernel_impl<at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}>(at::TensorIteratorBase&, at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1} const&)::{lambda(int)#4})) function_address(0x7fac77646680) numBlocks({}) dimBlocks({}) args(0x7ffd12e198cc) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "11146",
+        "ActualDuration": 6.079e-06,
+        "BeginS": 12.006828336045146,
+        "EndS": 12.006839481880888,
+        "AvgDurationS": 6.11068686868687e-06,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705838",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773705838312",
+        "EndNs": "1298773705839251",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "939",
+        "BeginS": 12.006847526878119,
+        "EndS": 12.006848465884104
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705843",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773705843322",
+        "EndNs": "1298773705844296",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "974",
+        "BeginS": 12.006852536927909,
+        "EndS": 12.006853510858491
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipExtModuleLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705890",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773705890753",
+        "EndNs": "1298773705899045",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipExtModuleLaunchKernel",
+        "args": "( kernel(Cijk_Alik_Bljk_SB_MT32x32x32_SE_1LDSB0_APM1_AF0EM1_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM1_BL1_DTL0_DVO0_EPS1_FL1_GRVW4_GSU1_ISA906_IU1_K1_KLA_LBSPP0_LPA0_LPB0_LDL1_LRVW4_MDA1_NLCA1_NLCB1_ONLL1_OPLV0_PK0_PAP0_PGR1_PLR1_RK0_SIA1_SU32_SUM0_SUS256_SRVW0_SVW4_SNLL0_TT4_4_TLDS0_USFGROn1_VAW1_VSn1_VW4_WSGRA0_WSGRB0_WG8_8_4_WGM8) f(0x55eacabd76c0) globalWorkSizeX(8192) globalWorkSizeY(1) globalWorkSizeZ(1) localWorkSizeX(256) localWorkSizeY(1) localWorkSizeZ(1) sharedMemBytes(0) hStream(0) kernelParams(NULL) extra(0x1) startEvent(0) stopEvent(0) flags(0))",
+        "Data": "",
+        "DurationNs": "8292",
+        "ActualDuration": 3.872e-05,
+        "BeginS": 12.00689996802248,
+        "EndS": 12.006908260053024,
+        "AvgDurationS": 3.817367676767676e-05,
+        "grid_dim": [
+          8192,
+          1,
+          1
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773705989",
+      "dur": "10",
+      "args": {
+        "BeginNs": "1298773705989776",
+        "EndNs": "1298773705999844",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::(anonymous namespace)::gatherTopK<float, unsigned int, 2, true>(at::cuda::detail::TensorInfo<float, unsigned int>, unsigned int, unsigned int, unsigned int, unsigned int, at::cuda::detail::TensorInfo<float, unsigned int>, unsigned int, unsigned int, at::cuda::detail::TensorInfo<long, unsigned int>, unsigned int)) function_address(0x7fac7805d700) numBlocks({}) dimBlocks({}) args(0x7ffd12e1acf0) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "10068",
+        "ActualDuration": 4.384e-05,
+        "BeginS": 12.006998990895227,
+        "EndS": 12.00700905895792,
+        "AvgDurationS": 4.24209393939394e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706007",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773706007150",
+        "EndNs": "1298773706008020",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "870",
+        "BeginS": 12.007016364950687,
+        "EndS": 12.007017235038802
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706029",
+      "dur": "5",
+      "args": {
+        "BeginNs": "1298773706029101",
+        "EndNs": "1298773706034707",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::bitonicSortKVInPlace<float, long, 2, -1, at::native::GTOp<float, true>, unsigned int, 32>(at::cuda::detail::TensorInfo<float, unsigned int>, unsigned int, unsigned int, unsigned int, at::cuda::detail::TensorInfo<long, unsigned int>, unsigned int, at::native::GTOp<float, true>)) function_address(0x7fac77eac9b0) numBlocks({}) dimBlocks({}) args(0x7ffd12e175c8) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "5606",
+        "ActualDuration": 1.264e-05,
+        "BeginS": 12.00703831599094,
+        "EndS": 12.007043921854347,
+        "AvgDurationS": 1.2501000000000003e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706038",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773706038810",
+        "EndNs": "1298773706039655",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "845",
+        "BeginS": 12.00704802502878,
+        "EndS": 12.007048869971186
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706137",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773706137290",
+        "EndNs": "1298773706146179",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::legacy::elementwise_kernel<128, 4, at::native::gpu_kernel_impl<at::native::CompareEqFunctor<long> >(at::TensorIteratorBase&, at::native::CompareEqFunctor<long> const&)::{lambda(int)#4}>(int, at::native::gpu_kernel_impl<at::native::CompareEqFunctor<long> >(at::TensorIteratorBase&, at::native::CompareEqFunctor<long> const&)::{lambda(int)#4})) function_address(0x7fac7752f600) numBlocks({}) dimBlocks({}) args(0x7ffd12e1bcac) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8889",
+        "ActualDuration": 3.68e-06,
+        "BeginS": 12.007146504940465,
+        "EndS": 12.007155393948779,
+        "AvgDurationS": 3.839999999999996e-06,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706150",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773706150700",
+        "EndNs": "1298773706151607",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "907",
+        "BeginS": 12.007159915054217,
+        "EndS": 12.007160821929574
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706240",
+      "dur": "8",
+      "args": {
+        "BeginNs": "1298773706240347",
+        "EndNs": "1298773706248683",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::legacy::elementwise_kernel<512, 1, at::native::gpu_kernel_impl<at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}>(at::TensorIteratorBase&, at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1} const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl<at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}>(at::TensorIteratorBase&, at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1} const&)::{lambda(int)#1})) function_address(0x7fac776464b0) numBlocks({}) dimBlocks({}) args(0x7ffd12e1b300) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "8336",
+        "ActualDuration": 4.8e-06,
+        "BeginS": 12.007249561836943,
+        "EndS": 12.007257897872478,
+        "AvgDurationS": 4.781409090909093e-06,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706253",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773706253403",
+        "EndNs": "1298773706254395",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "992",
+        "BeginS": 12.007262618048117,
+        "EndS": 12.007263609906659
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706258",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773706258236",
+        "EndNs": "1298773706259141",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "905",
+        "BeginS": 12.007267450913787,
+        "EndS": 12.007268355926499
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706349",
+      "dur": "7",
+      "args": {
+        "BeginNs": "1298773706349866",
+        "EndNs": "1298773706357601",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4>)) function_address(0x7fac77d2d300) numBlocks({}) dimBlocks({}) args(0x7ffd12e1b788) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "7735",
+        "ActualDuration": 1.328e-05,
+        "BeginS": 12.007359080947936,
+        "EndS": 12.007366816047579,
+        "AvgDurationS": 1.3604025252525239e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706362",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773706362309",
+        "EndNs": "1298773706363279",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "970",
+        "BeginS": 12.007371523883194,
+        "EndS": 12.007372493855655
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipMemcpyWithStream",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706400",
+      "dur": "272",
+      "args": {
+        "BeginNs": "1298773706400426",
+        "EndNs": "1298773706673016",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipMemcpyWithStream",
+        "args": "( dst(0x7ffd12e1c000) src(0x7fa9e60a6400) sizeBytes(4) kind(2) stream(1))",
+        "Data": "",
+        "DurationNs": "272590",
+        "BeginS": 12.007409641053528,
+        "EndS": 12.007682231022045
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706794",
+      "dur": "11",
+      "args": {
+        "BeginNs": "1298773706794805",
+        "EndNs": "1298773706806748",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::legacy::elementwise_kernel<512, 1, at::native::gpu_kernel_impl<at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}>(at::TensorIteratorBase&, at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1} const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl<at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1}>(at::TensorIteratorBase&, at::native::copy_device_to_device(at::TensorIterator&, bool)::{lambda()#3}::operator()() const::{lambda()#8}::operator()() const::{lambda(float)#1} const&)::{lambda(int)#1})) function_address(0x7fac776464b0) numBlocks({}) dimBlocks({}) args(0x7ffd12e1b300) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "11943",
+        "ActualDuration": 4.8e-06,
+        "BeginS": 12.007804019842297,
+        "EndS": 12.007815962890163,
+        "AvgDurationS": 4.781409090909093e-06,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706818",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773706818674",
+        "EndNs": "1298773706819637",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "963",
+        "BeginS": 12.007827888941392,
+        "EndS": 12.007828851928934
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706823",
+      "dur": "1",
+      "args": {
+        "BeginNs": "1298773706823733",
+        "EndNs": "1298773706824982",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "1249",
+        "BeginS": 12.007832947885618,
+        "EndS": 12.00783419702202
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipLaunchKernel",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706917",
+      "dur": "7",
+      "args": {
+        "BeginNs": "1298773706917771",
+        "EndNs": "1298773706925068",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipLaunchKernel",
+        "args": "( kernel(void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4> >(at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, float>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, float, 4>)) function_address(0x7fac77d2d300) numBlocks({}) dimBlocks({}) args(0x7ffd12e1b788) sharedMemBytes(0) stream(1))",
+        "Data": "",
+        "DurationNs": "7297",
+        "ActualDuration": 1.408e-05,
+        "BeginS": 12.007926985854283,
+        "EndS": 12.007934282999486,
+        "AvgDurationS": 1.3604025252525239e-05,
+        "grid_dim": [
+          0,
+          0,
+          0
+        ],
+        "block_dim": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipGetLastError",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706930",
+      "dur": "0",
+      "args": {
+        "BeginNs": "1298773706930150",
+        "EndNs": "1298773706931119",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipGetLastError",
+        "args": "( ))",
+        "Data": "",
+        "DurationNs": "969",
+        "BeginS": 12.007939364993945,
+        "EndS": 12.007940334035084
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipMemcpyWithStream",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773706966",
+      "dur": "76",
+      "args": {
+        "BeginNs": "1298773706966946",
+        "EndNs": "1298773707043523",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipMemcpyWithStream",
+        "args": "( dst(0x7ffd12e1c000) src(0x7fa9e60a6400) sizeBytes(4) kind(2) stream(1))",
+        "Data": "",
+        "DurationNs": "76577",
+        "BeginS": 12.007976160850376,
+        "EndS": 12.008052737917751
+      }
+    },
+    {
+      "ph": "X",
+      "name": "hipStreamSynchronize",
+      "pid": "2",
+      "tid": "18924",
+      "ts": "1298773707097",
+      "dur": "1",
+      "args": {
+        "BeginNs": "1298773707097372",
+        "EndNs": "1298773707099131",
+        "pid": "2",
+        "tid": "18924",
+        "Name": "hipStreamSynchronize",
+        "args": "( stream(1))",
+        "Data": "",
+        "DurationNs": "1759",
+        "BeginS": 12.008106586989015,
+        "EndS": 12.008108346024528
+      }
+    }
+  ],
+  "job_info": {
+    "args": {
+      "batch_size": 16,
+      "job_count": 100,
+      "time_limit": -1,
+      "width_mult": 1.0,
+      "output_file": "16_batch.jobs.json",
+      "data_limit": 1000,
+      "use_data_blobs": true,
+      "num_competitors": 1,
+      "task_index": 0,
+      "experiment_name": "",
+      "task_system_index": 0,
+      "max_job_times": 10000,
+      "wait_for_ts_release": false,
+      "relative_deadline": -1.0,
+      "use_locking": false,
+      "use_partitioned_streams": false,
+      "do_kutrace": false,
+      "no_preload_dataset": false,
+      "preload_gpu_memory": false,
+      "insert_trace_marks": true
+    },
+    "topk": [
+      1,
+      5
+    ],
+    "total_jobs_complete": 100,
+    "jobs_completed_on_time": 100,
+    "total_job_time": 2.3372754463925958,
+    "images_analyzed": 1600,
+    "images_analyzed_on_time": 1600,
+    "job_start_time": 1298773.683326005,
+    "min_job_time": 0.021582618355751038,
+    "max_job_time": 0.031403642147779465,
+    "mean_job_time": 0.02337275817990303,
+    "median_job_time": 0.023090969771146774,
+    "job_time_std_dev": 0.0011812233133241534,
+    "total_correct_k": [
+      1141.0,
+      1414.0
+    ],
+    "correct_k_no_late": [
+      1141.0,
+      1414.0
+    ],
+    "job_times": [
+      0.021684110164642334,
+      0.021582618355751038,
+      0.021609187126159668,
+      0.02172056958079338,
+      0.022084809839725494,
+      0.022693932056427002,
+      0.026107193902134895,
+      0.023232577368617058,
+      0.02285054884850979,
+      0.023162709549069405,
+      0.02305591106414795,
+      0.023666493594646454,
+      0.022875947877764702,
+      0.02288161776959896,
+      0.022924348711967468,
+      0.024757560342550278,
+      0.024724477902054787,
+      0.02310088463127613,
+      0.024911705404520035,
+      0.02285364270210266,
+      0.022818254306912422,
+      0.02285625785589218,
+      0.02317623980343342,
+      0.023107990622520447,
+      0.02308896742761135,
+      0.0251541156321764,
+      0.02310602366924286,
+      0.023504486307501793,
+      0.022858627140522003,
+      0.023254433646798134,
+      0.023577779531478882,
+      0.023006021976470947,
+      0.023256588727235794,
+      0.025036202743649483,
+      0.022883128374814987,
+      0.0237693153321743,
+      0.02309229038655758,
+      0.023597706109285355,
+      0.023242894560098648,
+      0.022940658032894135,
+      0.023239223286509514,
+      0.02307543344795704,
+      0.02514052391052246,
+      0.022767014801502228,
+      0.023473991081118584,
+      0.02299436554312706,
+      0.02482036128640175,
+      0.02341267466545105,
+      0.02308964915573597,
+      0.02293984591960907,
+      0.022657735273241997,
+      0.026853090152144432,
+      0.022934090346097946,
+      0.022882208228111267,
+      0.02381298691034317,
+      0.02315947227180004,
+      0.023099202662706375,
+      0.02276574820280075,
+      0.023060426115989685,
+      0.0226368997246027,
+      0.025391362607479095,
+      0.022688139230012894,
+      0.022868994623422623,
+      0.023217961192131042,
+      0.023021014407277107,
+      0.023030202835798264,
+      0.023641878738999367,
+      0.02282116562128067,
+      0.0231794361025095,
+      0.022988127544522285,
+      0.02312137931585312,
+      0.023144584149122238,
+      0.023171784356236458,
+      0.023198328912258148,
+      0.022812839597463608,
+      0.02372663840651512,
+      0.02280181087553501,
+      0.022815287113189697,
+      0.02274828590452671,
+      0.022755445912480354,
+      0.022816132754087448,
+      0.022959718480706215,
+      0.022815784439444542,
+      0.022975655272603035,
+      0.022923490032553673,
+      0.023014497011899948,
+      0.023119119927287102,
+      0.022799301892518997,
+      0.024865293875336647,
+      0.023016661405563354,
+      0.02552163600921631,
+      0.02271418459713459,
+      0.023683534935116768,
+      0.023318322375416756,
+      0.023213231936097145,
+      0.023123521357774734,
+      0.031403642147779465,
+      0.02388537861406803,
+      0.023553039878606796,
+      0.023784853518009186
+    ],
+    "blocking_times": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "last_job_duration": 0.0237848530523479
+  }
+}
