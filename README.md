@@ -20,6 +20,13 @@ benchmark for real-time applications:
  - Various other things to make it more suitable to my personal preferencecs.
 
 
+NOTE
+====
+
+Code in this repository is still in a state of flux as I remove experimental,
+unused data and work to reduce the number of difficult dependencies.
+
+
 Usage
 -----
 
