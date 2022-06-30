@@ -1,5 +1,6 @@
 import math
 import torch.nn as nn
+import kutrace
 
 from slimmable_ops import USBatchNorm2d, USConv2d, USLinear, make_divisible
 from config import FLAGS
@@ -84,10 +85,12 @@ class Model(nn.Module):
             self.reset_parameters()
 
     def forward(self, x):
+        kutrace.mark_b("eval")
         x = self.features(x)
         last_dim = x.size()[1]
         x = x.view(-1, last_dim)
         x = self.classifier(x)
+        kutrace.mark_b("/eval")
         return x
 
     def reset_parameters(self):

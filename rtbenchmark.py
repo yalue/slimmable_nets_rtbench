@@ -104,8 +104,10 @@ def single_job(input, target, model, correct_k, args):
     corresponds to the i'th value in FLAGS.topk. Expects the model to be on the
     GPU already. """
     if not args.preload_gpu_memory:
-        input = input.cuda(non_blocking = True)
-        target = target.cuda(non_blocking = True)
+        kutrace.mark_c("mem")
+        input = input.cuda()#non_blocking = True)
+        target = target.cuda()#non_blocking = True)
+        kutrace.mark_c("/mem")
     correct = forward_loss(model, input, target, correct_k)
     return None
 
@@ -167,6 +169,7 @@ class TaskStatistics:
         self.images_analyzed += self.args.batch_size
         self.total_correct_k += correct_k
         self.last_job_duration = duration
+        print("Job took " + str(duration))
 
         # Record some info depending on whether we completed on time.
         # Everything's "on time" if no deadline was specified.
@@ -201,6 +204,14 @@ class TaskStatistics:
         if limit <= 0:
             return False
         return self.total_jobs_complete == (limit - 1)
+
+    def jobs_remaining(self):
+        """ Returns the number of jobs left to run. Returns -1 if there is no
+        limit on the number of jobs. """
+        limit = self.args.job_count
+        if limit <= 0:
+            return -1
+        return limit - self.total_jobs_complete
 
     def average_job_time(self):
         """ Returns the average amount of time a job has taken so far. """
@@ -310,6 +321,7 @@ def run_test(loader, model, args):
     start_time = time.perf_counter()
     elapsed_time = 0.0
     jobs_missed = 0
+    do_kutrace = False
 
     while True:
         # Reset the enumerator if we're out of batches.
@@ -330,15 +342,17 @@ def run_test(loader, model, args):
                 rocm_helper.fake_kernel_a()
                 tracing = True
 
+        # Trace the final 2 jobs using KUtrace (the second to last will be too
+        # long, presumably due to starting kutrace)
+        if args.do_kutrace and (statistics.jobs_remaining() == 2):
+            do_kutrace = True
+            assert(kutrace.test())
+            kutrace.go("python")
+
         # Get input data
         batch_index, (input, target) = next(batch_enumerator)
         lock_slot = 0
 
-        do_kutrace = False
-        do_kutrace = args.do_kutrace and statistics.all_but_one_jobs_completed()
-        if do_kutrace:
-            assert(kutrace.test())
-            kutrace.go("python")
         statistics.starting_job()
         if args.use_locking:
             kfmlp_control.acquire_lock()
@@ -351,15 +365,17 @@ def run_test(loader, model, args):
         with torch.cuda.stream(stream):
             single_job(input, target, model, correct_k, args)
         stream.synchronize()
+        torch.cuda.synchronize()
         if do_kutrace:
-            # Insert a "job done" mark into KUtrace, stop tracing, and save the
-            # log.
             kutrace.mark_c("/job")
-            time.sleep(0.001)
-            kutrace.stop("single_job.trace")
         if args.use_locking:
             kfmlp_control.release_lock()
         statistics.finished_job(correct_k)
+
+        # Write the KUtrace log if we're done with the last job.
+        if do_kutrace and (statistics.jobs_remaining() == 0):
+            time.sleep(0.001)
+            kutrace.stop("single_job.trace")
 
         if tracing:
             # Will only be true in the first place if args.insert_trace_marks
@@ -453,6 +469,9 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
     with torch.no_grad():
         model_wrapper.apply(lambda m: setattr(m, "width_mult", args.width_mult))
         start_time = time.perf_counter()
+        # FIXED VERSION
+        #results = run_test(val_loader, model_wrapper.module, args)
+        # BAD VERSION
         results = run_test(val_loader, model_wrapper, args)
         end_time = time.perf_counter()
         topk_string = results.correct_k_string()
