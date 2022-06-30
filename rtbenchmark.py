@@ -93,9 +93,18 @@ def forward_loss(model, input, target, correct_k):
     _, pred = output.topk(max(FLAGS.topk))
     pred = pred.t()
     correct = pred.eq(target.view(1, -1).expand_as(pred))
+    kutrace.mark_c("sync")
+    torch.cuda.synchronize()
+    kutrace.mark_c("/sync")
+
+    # Only copy the results up to the max k we care about.
+    kutrace.mark_c("mem")
+    correct_cpu = correct[:FLAGS.topk[-1]].to("cpu")
+    kutrace.mark_c("/mem")
+
     for i in range(len(FLAGS.topk)):
         k = FLAGS.topk[i]
-        correct_k[i] = float(correct[:k].float().sum())
+        correct_k[i] = float(correct_cpu[:k].float().sum())
     return None
 
 def single_job(input, target, model, correct_k, args):
@@ -104,10 +113,10 @@ def single_job(input, target, model, correct_k, args):
     corresponds to the i'th value in FLAGS.topk. Expects the model to be on the
     GPU already. """
     if not args.preload_gpu_memory:
-        kutrace.mark_c("mem")
+        # kutrace.mark_c("mem")
         input = input.cuda()#non_blocking = True)
         target = target.cuda()#non_blocking = True)
-        kutrace.mark_c("/mem")
+        # kutrace.mark_c("/mem")
     correct = forward_loss(model, input, target, correct_k)
     return None
 
@@ -169,7 +178,7 @@ class TaskStatistics:
         self.images_analyzed += self.args.batch_size
         self.total_correct_k += correct_k
         self.last_job_duration = duration
-        print("Job took " + str(duration))
+        print("Job completed in " + str(duration))
 
         # Record some info depending on whether we completed on time.
         # Everything's "on time" if no deadline was specified.
@@ -361,13 +370,12 @@ def run_test(loader, model, args):
             stream = streams[lock_slot]
         if do_kutrace:
             # Insert a "job start" mark into KUtrace
-            kutrace.mark_c("job")
+            kutrace.mark_a("job")
         with torch.cuda.stream(stream):
             single_job(input, target, model, correct_k, args)
         stream.synchronize()
-        torch.cuda.synchronize()
         if do_kutrace:
-            kutrace.mark_c("/job")
+            kutrace.mark_a("/job")
         if args.use_locking:
             kfmlp_control.release_lock()
         statistics.finished_job(correct_k)
@@ -410,6 +418,7 @@ def validate_args(args):
     if args.no_preload_dataset and args.preload_gpu_memory:
         print("Can't load from disk and load from GPU memory.")
         exit(1)
+    assert(FLAGS.topk[-1] == max(FLAGS.topk))
 
 def train_val_test(args, input_ndarray=None, result_ndarray=None):
     """ This takes the command-line args object (or similar), and possibly two
@@ -470,9 +479,9 @@ def train_val_test(args, input_ndarray=None, result_ndarray=None):
         model_wrapper.apply(lambda m: setattr(m, "width_mult", args.width_mult))
         start_time = time.perf_counter()
         # FIXED VERSION
-        #results = run_test(val_loader, model_wrapper.module, args)
+        results = run_test(val_loader, model_wrapper.module, args)
         # BAD VERSION
-        results = run_test(val_loader, model_wrapper, args)
+        # results = run_test(val_loader, model_wrapper, args)
         end_time = time.perf_counter()
         topk_string = results.correct_k_string()
         print("Width mult %.04f took %.03fs. %s" % (args.width_mult,
