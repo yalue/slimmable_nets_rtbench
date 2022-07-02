@@ -57,7 +57,7 @@ class FakeArgs:
     of things, so this class mimics the attributes it may expect from the
     command-line args. """
     def __init__(self, config):
-        self.batch_size = 64
+        self.batch_size = 32
         self.job_count = 100
         self.time_limit = -1
         self.width_mult = 1.0
@@ -69,11 +69,14 @@ class FakeArgs:
         self.use_partitioned_streams = False
         self.num_competitors = 1
         self.task_index = 0
+        self.cu_mask = ""
         self.experiment_name = ""
+        self.scenario_name = ""
         self.do_kutrace = False
         self.no_preload_dataset = False
         self.preload_gpu_memory = False
         self.insert_trace_marks = False
+        self.use_data_blobs = True
         # No deadline by default.
         self.relative_deadline = -1.0
         for key in config:
@@ -146,43 +149,6 @@ def run_all_kernel_configs(input_dataset, result_dataset):
                 wm, bs, end_time - start_time))
     return True
 
-def estimate_cost(width_mult, batch_size, competitor_count):
-    # TODO (next, 2): Implement estimate_cost a bit better. Use real data.
-    return 0.1
-
-def deadline_from_cost(cost, width_mult, batch_size, competitor_count):
-    """ Returns a random period/deadline given a cost and task params. """
-    # TODO: Randomize the deadline a bit better. For now it just returns a
-    # multiple of cost between 2.0 and (2.0 + competitor_count)
-    cost_multiplier = 2.0 + (float(competitor_count) * random.random())
-    return cost * cost_multiplier
-
-def random_config(experiment_name, task_system_index, task_index,
-    num_competitors):
-    """ Returns an args object for a single task with a randomly selected width
-    mult, batch size, and cost/period estimate. """
-    width_mult_list, batch_size_list = width_mults_and_batch_sizes()
-    width_mult = random.choice(width_mult_list)
-    batch_size = random.choice(batch_size_list)
-    cost = estimate_cost(width_mult, batch_size, num_competitors)
-    deadline = deadline_from_cost(cost, width_mult, batch_size,
-        num_competitors)
-    output_filename = "results/%s_%d_%d.json" % (experiment_name,
-        task_system_index, task_index)
-    config = {
-        "num_competitors": num_competitors,
-        "task_index": task_index,
-        "experiment_name": experiment_name,
-        "task_system_index": task_system_index,
-        "output_file": output_filename,
-        "relative_deadline": deadline,
-        "time_limit": 120.0,
-        "job_count": 0,
-        "batch_size": batch_size,
-        "width_mult": width_mult
-    }
-    return config
-
 def unpartitioned_competitors(competitor_count, task_system_count):
     """ Runs task systems where all tasks share the same GPU with no
     restrictions. Returns a list of lists of task configs. """
@@ -196,53 +162,75 @@ def unpartitioned_competitors(competitor_count, task_system_count):
         to_return.append(task_system)
     return to_return
 
-def compare_6way_sharing():
-    """ Returns a set of scenarios, each of which allows 6 tasks to share the
-    GPU. """
+def compare_sharing_methods(num_competitors, batch_size=32, width_mult=1.0):
+    """ Returns a set of scenarios, in which systems of four tasks contend for
+    the GPU, using different possible management scenarios. """
+    width_int = int(width_mult * 100.0)
+    experiment_name = "%d-Way Sharing Management Comparison (Batch = %d, Width = %d)" % (
+        num_competitors, batch_size, width_int)
     base_task = {
-        "num_competitors": 6,
+        "num_competitors": num_competitors,
         "task_system_index": 0,
         "relative_deadline": -1.0,
-        "time_limit": 60.0 * 5.0,
+        "time_limit": 60.0,
+        "experiment_name": experiment_name,
         "job_count": 0,
-        "batch_size": 16,
+        "batch_size": batch_size,
+        "width_mult": width_mult,
     }
-    task1 = copy.deepcopy(base_task)
-    task1["width_mult"] = 1.0
-    task2 = copy.deepcopy(base_task)
-    task2["width_mult"] = 0.75
-    task3 = copy.deepcopy(base_task)
-    task3["width_mult"] = 0.5
-    task4 = copy.deepcopy(base_task)
-    task4["batch_size"] = 8
-    task4["width_mult"] = 1.0
-    task5 = copy.deepcopy(base_task)
-    task5["batch_size"] = 8
-    task5["width_mult"] = 0.75
-    task6 = copy.deepcopy(base_task)
-    task6["batch_size"] = 8
-    task6["width_mult"] = 0.5
-    base_task_system = [task1, task2, task3, task4, task5, task6]
+    base_task_system = []
+    for i in range(num_competitors):
+        t = copy.deepcopy(base_task)
+        t["task_index"] = i
+        base_task_system.append(t)
 
-    def make_experiment(name, use_locking, use_partitioned_streams):
-        scenario = copy.deepcopy(base_task_system)
-        for i in range(len(scenario)):
-            t = scenario[i]
-            t["experiment_name"] = name
-            t["task_index"] = i
-            t["output_file"] = "results/%s_%d.json" % (name, i)
-            t["use_locking"] = use_locking
-            t["use_partitioned_streams"] = use_partitioned_streams
-        return scenario
+    def make_scenario(k, use_partitions, task_system_index):
+        """ Returns a task system for a given scenario, based on
+        base_task_system."""
+        scenario_name = ""
+        file_name = "%d_competitors_" % (num_competitors,)
+        if k == 0:
+            scenario_name = "Unmanaged"
+            file_name += "unmanaged"
+        elif k == 1:
+            scenario_name = "Exclusive access"
+            file_name += "exclusive"
+        else:
+            tmp = "unpartitioned"
+            if use_partitions:
+                tmp = "partitioned"
+            scenario_name = "%d-way sharing (%s)" % (k, tmp)
+            file_name += "%dway_%s" % (k, tmp)
+        file_name += "_%d_batch_%d_width" % (batch_size, width_int)
+        to_return = copy.deepcopy(base_task_system)
+        for i in range(len(to_return)):
+            t = to_return[i]
+            # It won't matter that k is put in the args; rtbenchmark.py should
+            # just ignore it, but it's helpful when we're setting partition
+            # sizes.
+            t["k"] = k
+            t["output_file"] = "results/%s_task%d.json" % (file_name, i)
+            t["scenario_name"] = scenario_name
+            t["task_system_index"] = task_system_index
+            if k != 0:
+                t["use_locking"] = True
+            if use_partitions:
+                t["use_partitioned_streams"] = True
+        return to_return
 
-    to_return = [
-        make_experiment("6way_unmanaged", False, False),
-        make_experiment("6way_locked_exclusive", True, False),
-        make_experiment("6way_locked_2shared", True, False),
-        make_experiment("6way_locked_2partitioned", True, True),
-    ]
-    return to_return
-
+    ts_index = 0
+    task_systems = []
+    # Unamanaged, full GPU
+    task_systems.append(make_scenario(0, False, 0))
+    # Locked, full GPU
+    task_systems.append(make_scenario(1, False, 1))
+    # 2-exclusion locking, no partitioning
+    task_systems.append(make_scenario(2, False, 2))
+    # 2-exclusion locking, partitioning
+    task_systems.append(make_scenario(2, True, 3))
+    # All four tasks are partitioned
+    task_systems.append(make_scenario(4, True, 4))
+    return task_systems
 
 # TODO: Use a shared buffer to allow run_task_system to monitor child tasks
 # for activity after they've started up.
@@ -273,24 +261,25 @@ def run_task_system(tasks, input_data, result_data):
     for p in children:
         p.join()
 
-def run_6way_sharing_experiment(input_data, result_data):
-    """ Runs the 6-way sharing experiment. """
-    # I wrote this while too tired; it probably should be refactored.
-    scenarios = compare_6way_sharing()
-    run_task_system(scenarios[0], input_data, result_data)
+def run_4way_sharing_experiment(input_data, result_data, batch_size,
+        width_mult):
+    task_systems = compare_sharing_methods(4, batch_size=batch_size,
+        width_mult=width_mult)
     kfmlp_control.set_k(1)
-    run_task_system(scenarios[1], input_data, result_data)
-    kfmlp_control.set_k(2)
-    run_task_system(scenarios[2], input_data, result_data)
-    run_task_system(scenarios[3], input_data, result_data)
+    for ts in task_systems:
+        if ts[0]["k"] > 1:
+            kfmlp_control.set_k(ts[0]["k"])
+        run_task_system(ts, input_data, result_data)
 
 def main():
     kfmlp_control.reset_module_handle()
     input_data, result_data = load_dataset()
-    print("Input shape: %s, result shape: %s" % (str(input_data.shape),
-        str(result_data.shape)))
-    random.seed(1337)
-    run_6way_sharing_experiment(input_data, result_data)
+    batch_sizes = [4, 8, 16, 32, 64, 128]
+    width_mults = [1.0, 0.5, 0.25]
+
+    for bs in batch_sizes:
+        for wm in width_mults:
+            run_4way_sharing_experiment(input_data, result_data, bs, wm)
 
 if __name__ == "__main__":
     main()

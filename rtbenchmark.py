@@ -314,9 +314,19 @@ def run_test(loader, model, args):
     lock_od = None
     streams = None
     stream = torch.cuda.default_stream()
+
+    # If we're using k-exclusion locking with streams, then we'll create all
+    # the streams now.
     if args.use_partitioned_streams:
         k = kfmlp_control.get_k()
         streams = partitioned_streams.streams_for_partitions(k)
+
+    # If we're using a CU mask, create the stream we'll always use.
+    if args.cu_mask != "":
+        tmp = partitioned_streams.split_halves(int(args.cu_mask, 16))
+        s = rocm_helper.create_stream_with_cu_mask(tmp[0], tmp[1])
+        stream = torch.cuda.streams.ExternalStream(s)
+
     batch_index = 0
     batch_count = len(loader)
     batch_enumerator = enumerate(loader)
@@ -364,7 +374,7 @@ def run_test(loader, model, args):
 
         statistics.starting_job()
         if args.use_locking:
-            kfmlp_control.acquire_lock()
+            lock_slot = kfmlp_control.acquire_lock()
             statistics.lock_acquired()
         if args.use_partitioned_streams:
             stream = streams[lock_slot]
@@ -418,6 +428,11 @@ def validate_args(args):
     if args.no_preload_dataset and args.preload_gpu_memory:
         print("Can't load from disk and load from GPU memory.")
         exit(1)
+    if args.cu_mask != "":
+        if args.use_locking or args.use_partitioned_streams:
+            print("Manual CU masks aren't compatible with locking or " +
+                "partitioned streams.")
+            exit(1)
     assert(FLAGS.topk[-1] == max(FLAGS.topk))
 
 def train_val_test(args, input_ndarray=None, result_ndarray=None):
@@ -515,9 +530,15 @@ def main():
     parser.add_argument("--experiment_name", type=str, default="",
         help="A string identifying this experiment. Basically just to be " +
             "copied to the output file.")
+    parser.add_argument("--scenario_name", type=str, default="",
+        help="A string identifying a scenario within an experiment. " +
+            "Like --experiment_name, this is just copied to the output file.")
     parser.add_argument("--task_system_index", type=int, default=0,
         help="The number of this task's task system in this experiment.")
 
+    parser.add_argument("--cu_mask", type=str, default="",
+        help="A CU mask to use, as a hex string. Incompatible with " +
+            "use_locking or use_partitioned_streams.")
     parser.add_argument("--max_job_times", type=int, default=10000,
         help="The maximum number of job times to record.")
     parser.add_argument("--wait_for_ts_release", action="store_true",

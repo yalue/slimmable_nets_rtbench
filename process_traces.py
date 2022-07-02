@@ -120,7 +120,7 @@ def get_kernels(events):
 
 def load_json(filename):
     data = None
-    with open("results/" + filename) as f:
+    with open("results_fixed_issue/" + filename) as f:
         data = json.loads(f.read())
     return data
 
@@ -150,16 +150,17 @@ def print_table_line(filename, batch_size, width_mult):
     total_kernel_ms = 0.0
     for k in kernels:
         total_kernel_ms += k[1] * 1000.0
-    print("%d & %.2f & %.03f & %.03f \\\\" % (batch_size, width_mult,
-        total_kernel_ms, job_time_ms))
+    kernel_percentage = (total_kernel_ms / job_time_ms) * 100.0
+    print("%d & %.2f & %.03f & %.03f & %.01f\\%% \\\\" % (batch_size,
+        width_mult, total_kernel_ms, job_time_ms, kernel_percentage))
 
 def table_from_files(filenames, batch_sizes, width_mults):
     """ Prints LaTeX tabular data containing the total kernel time and overall
     job time for each filename. """
-    print(r'\begin{tabular}{|c|c|c|c|}')
+    print(r'\begin{tabular}{|c|c|c|c|c|}')
     print(r'\hline')
-    print(r'\multirow{2}*{Batch Size} & Width & Mean Total & Mean Job \\')
-    print(r' & Multiplier & Kernel Time (ms) & Time (ms) \\')
+    print(r'\multirow{2}*{Batch Size} & Width & Mean Total & Mean Job & \% Kernel \\')
+    print(r' & Multiplier & Kernel Time (ms) & Time (ms) & Execution \\')
     print(r'\hline')
     for i in range(len(filenames)):
         print_table_line(filenames[i], batch_sizes[i], width_mults[i])
