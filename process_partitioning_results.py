@@ -5,7 +5,6 @@ import itertools
 import json
 import matplotlib.pyplot as plot
 import numpy
-import re
 
 def convert_values_to_cdf(values):
     """Takes a 1-D list of values and converts it to a CDF representation. The
@@ -76,6 +75,8 @@ def plot_cdfs(all_times, labels, title):
     style_cycler = itertools.cycle(get_line_styles())
 
     figure = plot.figure(num=title)
+    # The title isn't necessary in the paper.
+    #figure.suptitle(title)
     axes = figure.add_subplot(1, 1, 1)
     # Make the axes track data exactly, we'll manually add padding later.
     axes.autoscale(enable=True, axis='both', tight=True)
@@ -101,126 +102,81 @@ def load_json(filename):
         data = json.loads(f.read())
     return data
 
-def generate_plots():
-    filenames = glob.glob("4way_sharing_results/*.json")
-    experiments = {}
-    for f in filenames:
-        content = load_json(f)
-        experiment_name = content["args"]["experiment_name"]
-        if experiment_name == "":
-            print("Skipping %s: no experiment name." % (f,))
-            continue
-        if experiment_name not in experiments:
-            experiments[experiment_name] = {}
-        experiment = experiments[experiment_name]
-        scenario_name = content["args"]["scenario_name"]
-        if scenario_name == "":
-            print("Skipping %s: no scenario name." % (f, ))
-            continue
-        if scenario_name not in experiment:
-            experiment[scenario_name] = []
-        experiment[scenario_name].extend(content["job_times"])
-
-    figures = []
-    for experiment_name in experiments:
-        print("Processing experiment " + experiment_name + ":")
-        experiment = experiments[experiment_name]
-        scenario_names = list(experiment.keys())
-        scenario_names.sort()
-        times = []
-        for scenario_name in scenario_names:
-            samples = experiment[scenario_name]
-            print("  Scenario %s: %d samples" % (scenario_name, len(samples)))
-            for i in range(len(samples)):
-                # Convert to ms
-                samples[i] *= 1000.0
-            times.append(samples)
-        figures.append(plot_cdfs(times, scenario_names, experiment_name))
-    plot.show()
-
-def get_stats(filenames):
-    """ Takes a list of filenames, and returns a dict with stats encompassing
-    all of the job times in every one of the files. """
-    all_times = []
-    for f in filenames:
-        content = load_json(f)
-        all_times.extend(content["job_times"])
-    all_times.sort()
-    for i in range(len(all_times)):
-        # Convert to ms
-        all_times[i] *= 1000.0
-    to_return = {
-        "min": min(all_times),
-        "max": max(all_times),
-        "median": all_times[len(all_times) // 2],
-        "mean": numpy.mean(all_times),
-        "std_dev": numpy.std(all_times),
-    }
-    return to_return
-
-def generate_table_section(task_size):
-    """ Takes a task size, "small", "med", or "large", and generates the
-    portion of the table with lock-based info for it. """
-
-    batch_width = {
-        "small": (8, 25),
-        "med": (32, 50),
-        "large": (64, 100),
-    }[task_size]
-    row_labels = [
-        "Unmanaged",
-        "Exclusive Locking",
-        "2-Exclusion Locking",
-        "2-Excl. w/ Partitioning",
-        "4-Way Partitioning",
+def get_cdf_plots(measured_size, competitor_size):
+    # 4 curves:
+    #  - Unmanaged
+    #  - 15 CUs
+    #  - 30 Cus
+    result_dir = "results"
+    filenames = [
+        "%s/measured_%s_vs_4_%s_unpartitioned.json" % (result_dir,
+            measured_size, competitor_size),
+        "%s/measured_%s_vs_4_%s_15_cus.json" % (result_dir,
+            measured_size, competitor_size),
+        "%s/measured_%s_vs_4_%s_30_cus.json" % (result_dir,
+            measured_size, competitor_size),
     ]
-    row_fnames = [
-        "unmanaged",
-        "exclusive",
-        "2way_unpartitioned",
-        "2way_partitioned",
-        "4way_partitioned",
+    labels = [
+        "Unamanged",
+        "Partitioned to 15 CUs",
+        "Partitioned to 30 CUs",
     ]
-    for i in range(len(row_labels)):
-        rl = row_labels[i]
+    times = []
+    for f in filenames:
+        # Convert times to milliseconds
+        jt = load_json(f)["job_times"]
+        for i in range(len(jt)):
+            jt[i] *= 1000.0
+        times.append(jt)
+    return plot_cdfs(times, labels, "%s vs %s competitors" % (measured_size,
+        competitor_size))
+
+def print_table_section(measured_size, competitor_size):
+    partitioning = ["15", "20", "30", "Unpartitioned"]
+    for i in range(len(partitioning)):
+        p = partitioning[i]
+        filename = "results/measured_%s_" % (measured_size)
+        if competitor_size == "None":
+            filename += "isolated_"
+        else:
+            filename += "vs_4_%s_" % (competitor_size,)
+        if p == "Unpartitioned":
+            filename += "unpartitioned.json"
+        else:
+            filename += "%s_cus.json" % (p,)
         line = ""
         if i == 0:
-            line += r'\multirow{5}*{\nn' + task_size + r'{}} & '
+            tmp = competitor_size
+            if tmp != "None":
+                tmp = r'\nn' + tmp + '{}'
+            line += r'\multirow{4}*{' + tmp + "} & "
         else:
             line += " & "
-        line += rl + " & "
-        t = "4_competitors_%s_%d_batch_%d_width_task*.json" % (row_fnames[i],
-            batch_width[0], batch_width[1])
-        filenames = glob.glob("4way_sharing_results/" + t)
-        stats = get_stats(filenames)
-        line += "%.02f & %.02f & %.02f & %.02f \\\\" % (stats["min"],
-            stats["max"], stats["mean"], stats["std_dev"])
+        line += p + " & "
+        content = load_json(filename)
+        line += "%.03f & " % (content["min_job_time"] * 1000.0,)
+        line += "%.03f & " % (content["max_job_time"] * 1000.0,)
+        line += "%.03f & " % (content["mean_job_time"] * 1000.0,)
+        line += "%.03f " % (content["job_time_std_dev"] * 1000.0,)
+        line += r'\\'
         print(line)
 
-# Table layout:
-# - 3 sections: small, medium, and large tasks
-#   - Row 1: Unmanaged
-#   - Row 2: Exclusive locking
-#   - Row 3: 2-Exclusion locking
-#   - Row 4: 2-Exclusion locking and partitioning
-#   - Row 5: 4-Way Partitioning
-def generate_tables():
-    sizes = ["small", "medium", "large"]
+def print_table(measured_size):
     print(r'''\begin{tabular}{|c|c|c c c c|}
 \hline
-Task & Management & \multirow{2}*{Min (ms)} & \multirow{2}*{Max (ms)} & Arithmetic & Standard \\
-Sizes & Technique & & & Mean (ms) & Deviation \\
+\multirow{2}*{Competitor} & Partition & \multirow{2}*{Min (ms)} & \multirow{2}*{Max (ms)} & Arithmetic & Stdandard \\
+ & Size (CUs) & & & Mean (ms) & Deviation \\
 \hline''')
-    generate_table_section("small")
-    print(r'\hline')
-    generate_table_section("med")
-    print(r'\hline')
-    generate_table_section("large")
-    print(r'\hline')
+    competitor_sizes = ["None", "small", "med", "large"]
+    for s in competitor_sizes:
+        print_table_section(measured_size, s)
+        print(r'\hline')
     print(r'\end{tabular}')
 
-# Show a ton of plots.
-# generate_plots()
+print("\nTable with medium measured task:\n")
+print_table("med")
 
-generate_tables()
+figures = []
+figures.append(get_cdf_plots("med", "large"))
+plot.show()
 

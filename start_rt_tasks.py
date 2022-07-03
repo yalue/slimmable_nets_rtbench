@@ -232,6 +232,163 @@ def compare_sharing_methods(num_competitors, batch_size=32, width_mult=1.0):
     task_systems.append(make_scenario(4, True, 4))
     return task_systems
 
+def cu_masks_with_size(n):
+    """ Returns a mask containing the given number of CUs along with a mask
+    containing all of the other CUs. """
+    # Full GPU, for both this and the competitor(s).
+    if (n == 60) or (n == 0):
+        return "f" * 15, "f" * 15
+    # SE-packed is better for the even split
+    if n == 30:
+        return "3" * 15, "c" * 15
+    # SE-distributed is better for the 1/3rd split
+    if n == 20:
+        x = "fffff"
+        y = "00000"
+        return x + y + y, y + x + x
+    if n == 40:
+        return x + x + y, y + y + x
+    if n == 8:
+        return "ff" + "0" * 13, "00" + "f" * 13
+    # SE-packed is better for 15 CUs.
+    if n == 15:
+        return "1" * 15, "e" * 15
+    if n == 45:
+        return "e" * 15, "1" * 15
+    print("Unsupported number of CUs: " + str(n))
+    exit(1)
+    return None
+
+
+def test_cu_masking_isolation(partition_size, num_competitors,
+        competitor_bs=32, competitor_wm=1.0):
+    """ Takes a partition size and the number of competitors to assign to the
+    other partition, and returns a task system intended to contain one measured
+    task in one partition, with all the competitors in the rest. """
+    wm_pct = int(competitor_wm * 100.0)
+    experiment_name = "Partitioning Efficacy (%d CUs) With %d batch, %d%% width Competitors" % (
+        partition_size, competitor_bs, wm_pct)
+    measured_mask, competitor_mask = cu_masks_with_size(partition_size)
+    scenario_name = "vs. %d competitors" % (num_competitors,)
+    base_filename = "%d_cus_%d_competitors_%d_cbs_%d_wm.json" % (
+        partition_size, num_competitors, competitor_bs, wm_pct)
+    measured_config = {
+        "task_index": 0,
+        "num_competitors": num_competitors + 1,
+        "time_limit": 60.0,
+        "job_count": 0,
+        "experiment_name": experiment_name,
+        "scenario_name": scenario_name,
+        "output_file": "results/measured_" + base_filename,
+        "batch_size": 32,
+        "width_mult": 1.0,
+        "cu_mask": measured_mask,
+    }
+    tasks = [measured_config]
+    for i in range(num_competitors):
+        competitor_filename = "results/competitor_%d_%s" % (i, base_filename)
+        # All of the competitors will be in a different "scenario" so they
+        # ought to be excluded from the results we want.
+        competitor_config = {
+            "task_index": i + 1,
+            "num_competitors": num_competitors + 1,
+            "time_limit": 60.0,
+            "job_count": 0,
+            "experiment_name": experiment_name,
+            "scenario_name": scenario_name + " (competitor)",
+            "output_file": competitor_filename,
+            "batch_size": competitor_bs,
+            "width_mult": competitor_wm,
+            "cu_mask": competitor_mask,
+        }
+        tasks.append(competitor_config)
+    return tasks
+
+def get_competitors(n, width_mult, batch_size, exp_name, file_basename,
+        cu_mask = ""):
+    """ Returns a list of n identical "competitor" configs for use in
+    experiments. The first in the list will have a task_index of 1, though
+    honestly I don't even remember if I use these for anything. """
+    wm_pct = int(width_mult * 100.0)
+    # Scenario name shouldn't be important, as we will be ignoring competitor
+    # results like this.
+    scenario_name = "%s (competitor, bs=%d, wm=%d)" % (exp_name, batch_size,
+        wm_pct)
+    to_return = []
+    for i in range(n):
+        output_filename = "results/competitor%d_%s_width%d_batch%d.json" % (
+            i + 1, file_basename, wm_pct, batch_size)
+        config = {
+            "task_index": i + 1,
+            "experiment_name": exp_name,
+            "num_competitors": n + 1,
+            "scenario_name": scenario_name,
+            "output_file": output_filename,
+            "batch_size": batch_size,
+            "width_mult": width_mult,
+            "job_count": 0,
+            "time_limit": 60.0,
+        }
+        if cu_mask != "":
+            config["cu_mask"] = cu_mask
+        to_return.append(config)
+    return to_return
+
+def gen_partitioning_experiment(n_competitors, measured_size, competitor_size):
+    """ n_competitors is self explanatory. measured_size determines the
+    parameters we'll assign to the measured task. This size must be a string:
+    "small", "med", or "large". (competitor_size is the same, but for the
+    competitors) """
+
+    sizes = {
+        "small": (8, 0.25),
+        "med": (32, 0.5),
+        "large": (64, 1.0),
+    }
+    partition_sizes = [15, 20, 30, 60]
+    experiment_name = "Performance of a %s task vs. %d %s competitors" % (
+        measured_size, n_competitors, competitor_size)
+    partial_filename = "%s_" % (measured_size,)
+    if n_competitors == 0:
+        partial_filename += "isolated"
+    else:
+        partial_filename += "vs_%d_%s" % (n_competitors, competitor_size)
+    to_return = []
+    for cu_count in partition_sizes:
+        measured_mask, comp_mask = cu_masks_with_size(cu_count)
+        scenario_name = ""
+        management_str = ""
+        if cu_count == 60:
+            scenario_name = "Unpartitioned"
+            management_str = "_unpartitioned"
+        else:
+            scenario_name = "Partitioned (%d CUs)" % (cu_count,)
+            management_str = "_%d_cus" % (cu_count,)
+        output_filename = "results/measured_%s%s.json" % (partial_filename,
+            management_str)
+        measured_config = {
+            "task_index": 0,
+            "num_competitors": n_competitors + 1,
+            "scenario_name": scenario_name,
+            "experiment_name": experiment_name,
+            "output_file": output_filename,
+            "cu_mask": measured_mask,
+            "batch_size": sizes[measured_size][0],
+            "width_mult": sizes[measured_size][1],
+            "job_count": 0,
+            "time_limit": 60.0,
+        }
+        task_system = []
+        task_system.append(measured_config)
+        if n_competitors != 0:
+            c_size = sizes[competitor_size]
+            competitors = get_competitors(n_competitors, c_size[1], c_size[0],
+                experiment_name, partial_filename + management_str,
+                cu_mask=comp_mask)
+            task_system.extend(competitors)
+        to_return.append(task_system)
+    return to_return
+
 # TODO: Use a shared buffer to allow run_task_system to monitor child tasks
 # for activity after they've started up.
 def run_task_system(tasks, input_data, result_data):
@@ -271,15 +428,51 @@ def run_4way_sharing_experiment(input_data, result_data, batch_size,
             kfmlp_control.set_k(ts[0]["k"])
         run_task_system(ts, input_data, result_data)
 
-def main():
-    kfmlp_control.reset_module_handle()
-    input_data, result_data = load_dataset()
+def generate_4way_sharing_data():
+    """ Run this to generate the data that's now in the 4way_sharing_results
+    directory. """
     batch_sizes = [4, 8, 16, 32, 64, 128]
     width_mults = [1.0, 0.5, 0.25]
-
     for bs in batch_sizes:
         for wm in width_mults:
             run_4way_sharing_experiment(input_data, result_data, bs, wm)
+
+def generate_cu_mask_efficacy_data(input_data, result_data):
+    competitor_batch_sizes = [8, 64]
+    competitor_width_mults = [0.25, 1.0]
+    measured_partition_sizes = [8, 15, 20, 30]
+    for cbs in competitor_batch_sizes:
+        for cwm in competitor_width_mults:
+            for cu_count in measured_partition_sizes:
+                for num_competitors in range(4):
+                    task_system = test_cu_masking_isolation(cu_count,
+                        num_competitors, cbs, cwm)
+                    run_task_system(task_system, input_data, result_data)
+
+def gen_partitioning_data(input_data, result_data):
+    # Generating data for three tables and/or CDFs:
+    #  - Small tasks vs nothing or small, med, and large competitors w/
+    #    different partitioning.
+    #  - Same but for med. tasks
+    #  - Same but for large tasks.
+    #
+    # Should result in 36 task systems: (3 * 3) size configs * 4 partitioning
+    # types per size config.
+    competitor_sizes = ["none", "small", "med", "large"]
+    measured_sizes = ["small", "med", "large"]
+    for ms in measured_sizes:
+        for cs in competitor_sizes:
+            if cs == "none":
+                task_systems = gen_partitioning_experiment(0, ms, "junk")
+            else:
+                task_systems = gen_partitioning_experiment(3, ms, cs)
+            for ts in task_systems:
+                run_task_system(ts, input_data, result_data)
+
+def main():
+    kfmlp_control.reset_module_handle()
+    input_data, result_data = load_dataset()
+    gen_partitioning_data(input_data, result_data)
 
 if __name__ == "__main__":
     main()

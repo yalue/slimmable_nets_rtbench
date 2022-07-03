@@ -3,5 +3,7 @@ models/__pycache__/
 utils/__pycache__/
 input_data_raw.bin
 result_data_raw.bin
+input_data_raw_small.bin
+result_data_raw_small.bin
 .kfmlp_lock
 
