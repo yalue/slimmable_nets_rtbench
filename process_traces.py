@@ -70,7 +70,7 @@ def add_plot_padding(axes):
     axes.xaxis.set_ticks(numpy.arange(x_limits[0], x_limits[1] + x_pad,
         x_range / 5.0))
     axes.yaxis.set_ticks(numpy.arange(y_limits[0], y_limits[1] + y_pad,
-        y_range / 5.0))
+        y_range / 10.0))
 
 def plot_cdfs(all_times, labels):
     """ Takes a list of lists of kernel durations (in ms), and a list of
