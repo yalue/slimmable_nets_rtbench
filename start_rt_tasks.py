@@ -469,10 +469,76 @@ def gen_partitioning_data(input_data, result_data):
             for ts in task_systems:
                 run_task_system(ts, input_data, result_data)
 
+def run_job_vs_kernel_locking(input_data, result_data):
+    """ Intended to test exclusive locking on a per-job or per-kernel
+    granularity. """
+    # Six things to run:
+    #  - Single "medium" job, unmanaged.
+    #  - Single "medium" job, per-kernel locking.
+    #  - Single "medium" job, per-job locking.
+    #  - Two "medium" jobs, unmanaged.
+    #  - Two "medium" jobs, per-kernel locking.
+    #  - Two "medium" jobs, per-job locking.
+    envname = "USE_KFMLP_LOCKING"
+    task1 = {
+        "experiment_name": "Job vs. Kernel Locking",
+        "scenario_name": "1 Task, Unmanaged",
+        "output_file": "results/isolated_unmanaged_med.json",
+        "num_competitors": 1,
+        "task_index": 0,
+        "time_limit": 60.0,
+        "job_count": 0,
+        "batch_size": 32,
+        "width_mult": 0.5,
+    }
+    # 1 task, unmanaged
+    run_task_system([task1], input_data, result_data)
+
+    # 1 task, per-kernel locking
+    task1["scenario_name"] = "1 Task, Per-Kernel Locking"
+    task1["output_file"] = "results/isolated_perkernel_med.json"
+    os.environ[envname] = "1"
+    run_task_system([task1], input_data, result_data)
+
+    # 1 task, per-job locking
+    del os.environ[envname]
+    task1["scenario_name"] = "1 Task, Per-Job Locking"
+    task1["output_file"] = "results/isolated_perjob_med.json"
+    task1["use_locking"] = True
+    run_task_system([task1], input_data, result_data)
+
+    # 2 tasks, unmanaged
+    task1["use_locking"] = False
+    task1["num_competitors"] = 2
+    task1["scenario_name"] = "2 Tasks, Unmanaged"
+    task2 = copy.deepcopy(task1)
+    task2["task_index"] = 1
+    task1["output_file"] = "results/2tasks_unmanaged_med_task0.json"
+    task2["output_file"] = "results/2tasks_unmanaged_med_task1.json"
+    run_task_system([task1, task2], input_data, result_data)
+
+    # 2 tasks, per-kernel locking
+    task1["scenario_name"] = "2 Tasks, Per-Kernel Locking"
+    task2["scenario_name"] = task1["scenario_name"]
+    task1["output_file"] = "results/2tasks_perkernel_med_task0.json"
+    task2["output_file"] = "results/2tasks_perkernel_med_task1.json"
+    os.environ[envname] = "1"
+    run_task_system([task1, task2], input_data, result_data)
+
+    # 2 tasks, per-job locking
+    del os.environ["USE_KFMLP_LOCKING"]
+    task1["scenario_name"] = "2 Tasks, Per-Job Locking"
+    task2["scenario_name"] = task1["scenario_name"]
+    task1["output_file"] = "results/2tasks_perjob_med_task0.json"
+    task2["output_file"] = "results/2tasks_perjob_med_task1.json"
+    task1["use_locking"] = True
+    task2["use_locking"] = True
+    run_task_system([task1, task2], input_data, result_data)
+
 def main():
     kfmlp_control.reset_module_handle()
     input_data, result_data = load_dataset()
-    gen_partitioning_data(input_data, result_data)
+    run_job_vs_kernel_locking(input_data, result_data)
 
 if __name__ == "__main__":
     main()
