@@ -107,7 +107,7 @@ def get_cdf_plots(measured_size, competitor_size):
     #  - Unmanaged
     #  - 15 CUs
     #  - 30 Cus
-    result_dir = "results"
+    result_dir = "results_partitioning_data"
     filenames = [
         "%s/measured_%s_vs_4_%s_unpartitioned.json" % (result_dir,
             measured_size, competitor_size),
@@ -135,7 +135,7 @@ def print_table_section(measured_size, competitor_size):
     partitioning = ["15", "20", "30", "Unpartitioned"]
     for i in range(len(partitioning)):
         p = partitioning[i]
-        filename = "results/measured_%s_" % (measured_size)
+        filename = "results_partitioning_data/measured_%s_" % (measured_size)
         if competitor_size == "None":
             filename += "isolated_"
         else:
