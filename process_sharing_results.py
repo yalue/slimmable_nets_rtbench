@@ -142,19 +142,33 @@ def get_stats(filenames):
     """ Takes a list of filenames, and returns a dict with stats encompassing
     all of the job times in every one of the files. """
     all_times = []
+    blocking_times = []
     for f in filenames:
         content = load_json(f)
         all_times.extend(content["job_times"])
+        bt = content["blocking_times"]
+        # FIX A BUG: I was including some uninitialized blocking times in here,
+        # so we will check each value and convert it to ms if it's valid.
+        for i in range(len(bt)):
+            t = bt[i]
+            if t >= 2.0:
+                continue
+            blocking_times.append(t * 1000.0)
     all_times.sort()
+    blocking_times.sort()
+    # Convert to ms
     for i in range(len(all_times)):
-        # Convert to ms
         all_times[i] *= 1000.0
+    mean_blocking = numpy.mean(blocking_times)
+    mean_job = numpy.mean(all_times)
     to_return = {
         "min": min(all_times),
         "max": max(all_times),
         "median": all_times[len(all_times) // 2],
-        "mean": numpy.mean(all_times),
+        "mean": mean_job,
         "std_dev": numpy.std(all_times),
+        "mean_blocking": mean_blocking,
+        "blocking_percent": (mean_blocking / mean_job) * 100.0,
     }
     return to_return
 

@@ -271,11 +271,15 @@ class TaskStatistics:
         old_job_times = self.job_times
         if self.total_jobs_complete < len(self.job_times):
             self.job_times = self.job_times[0:self.total_jobs_complete]
+        old_blocking_times = self.blocking_times
+        if self.total_jobs_complete < len(self.job_times):
+            self.blocking_times = self.blocking_times[0:self.total_jobs_complete]
         self.compute_stats()
         with open(self.args.output_file, "w") as f:
             json.dump(vars(self), f, indent="  ", default=dumper)
         print("Wrote output to " + self.args.output_file)
         self.job_times = old_job_times
+        self.blocking_times = old_blocking_times
 
 def sleep_next_period(last_cost, relative_deadline):
     """ Sleeps until the next period boundary, assuming relative deadlines

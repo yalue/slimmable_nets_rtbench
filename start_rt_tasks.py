@@ -203,6 +203,17 @@ def compare_sharing_methods(num_competitors, batch_size=32, width_mult=1.0):
             file_name += "%dway_%s" % (k, tmp)
         file_name += "_%d_batch_%d_width" % (batch_size, width_int)
         to_return = copy.deepcopy(base_task_system)
+
+        # Hack for 4 way partitioning
+        cu_masks = None
+        if k == 4:
+            cu_masks = [
+                "1" * 15,
+                "2" * 15,
+                "4" * 15,
+                "8" * 15,
+            ]
+
         for i in range(len(to_return)):
             t = to_return[i]
             # It won't matter that k is put in the args; rtbenchmark.py should
@@ -212,10 +223,17 @@ def compare_sharing_methods(num_competitors, batch_size=32, width_mult=1.0):
             t["output_file"] = "results/%s_task%d.json" % (file_name, i)
             t["scenario_name"] = scenario_name
             t["task_system_index"] = task_system_index
-            if k != 0:
-                t["use_locking"] = True
-            if use_partitions:
-                t["use_partitioned_streams"] = True
+            if k == 4:
+                # No need to lock or partition when we manually specify a CU
+                # mask.
+                t["cu_mask"] = cu_masks[i]
+                t["use_locking"] = False
+                t["use_partitioned_streams"] = False
+            else:
+                if k != 0:
+                    t["use_locking"] = True
+                if use_partitions:
+                    t["use_partitioned_streams"] = True
         return to_return
 
     ts_index = 0
@@ -428,10 +446,10 @@ def run_4way_sharing_experiment(input_data, result_data, batch_size,
             kfmlp_control.set_k(ts[0]["k"])
         run_task_system(ts, input_data, result_data)
 
-def generate_4way_sharing_data():
+def generate_4way_sharing_data(input_data, result_data):
     """ Run this to generate the data that's now in the 4way_sharing_results
     directory. """
-    batch_sizes = [4, 8, 16, 32, 64, 128]
+    batch_sizes = [8, 32, 64]
     width_mults = [1.0, 0.5, 0.25]
     for bs in batch_sizes:
         for wm in width_mults:
@@ -538,7 +556,7 @@ def run_job_vs_kernel_locking(input_data, result_data):
 def main():
     kfmlp_control.reset_module_handle()
     input_data, result_data = load_dataset()
-    run_job_vs_kernel_locking(input_data, result_data)
+    generate_4way_sharing_data(input_data, result_data)
 
 if __name__ == "__main__":
     main()
