@@ -4,6 +4,13 @@ import torch.nn as nn
 from slimmable_ops import USBatchNorm2d, USConv2d, USLinear, make_divisible
 from config import FLAGS
 
+kutrace_available = False
+try:
+    import kutrace
+    kutrace_available = True
+except ImportError:
+    pass
+
 
 class DepthwiseSeparableConv(nn.Module):
     def __init__(self, inp, outp, stride):
@@ -84,10 +91,14 @@ class Model(nn.Module):
             self.reset_parameters()
 
     def forward(self, x):
+        if kutrace_available:
+            kutrace.mark_c("eval")
         x = self.features(x)
         last_dim = x.size()[1]
         x = x.view(-1, last_dim)
         x = self.classifier(x)
+        if kutrace_available:
+            kutrace.mark_c("/eval")
         return x
 
     def reset_parameters(self):
