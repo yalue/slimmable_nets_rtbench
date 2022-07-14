@@ -102,7 +102,15 @@ def load_json(filename):
     return data
 
 def generate_plots():
-    filenames = glob.glob("4way_sharing_results/*.json")
+    #filenames = glob.glob("4way_sharing_results/*.json")
+    globs = [
+        "4_competitors_*_8_batch_25_width*.json",
+        "4_competitors_*_32_batch_50_width*.json",
+        "4_competitors_*_64_batch_100_width*.json",
+    ]
+    filenames = []
+    for g in globs:
+        filenames.extend(list(glob.glob("4way_sharing_results/" + g)))
     experiments = {}
     for f in filenames:
         content = load_json(f)
@@ -121,6 +129,20 @@ def generate_plots():
             experiment[scenario_name] = []
         experiment[scenario_name].extend(content["job_times"])
 
+    label_scenarios = {
+        "4-Way Partitioning": '4-way sharing (partitioned)',
+        "Exclusive Locking": 'Exclusive access',
+        "2-Exclusion Locking": '2-way sharing (unpartitioned)',
+        "Unmanaged": "Unmanaged",
+        "2-Excl. w/ Partitioning": '2-way sharing (partitioned)',
+    }
+    label_list = [
+        "Unmanaged",
+        "Exclusive Locking",
+        "2-Exclusion Locking",
+        "2-Excl. w/ Partitioning",
+        "4-Way Partitioning",
+    ]
     figures = []
     for experiment_name in experiments:
         print("Processing experiment " + experiment_name + ":")
@@ -128,14 +150,15 @@ def generate_plots():
         scenario_names = list(experiment.keys())
         scenario_names.sort()
         times = []
-        for scenario_name in scenario_names:
-            samples = experiment[scenario_name]
+        for label in label_list:
+            scenario_name = label_scenarios[label]
+            samples = experiment[label_scenarios[label]]
             print("  Scenario %s: %d samples" % (scenario_name, len(samples)))
             for i in range(len(samples)):
                 # Convert to ms
                 samples[i] *= 1000.0
             times.append(samples)
-        figures.append(plot_cdfs(times, scenario_names, experiment_name))
+        figures.append(plot_cdfs(times, label_list, experiment_name))
     plot.show()
 
 def get_stats(filenames):
@@ -234,7 +257,7 @@ Sizes & Technique & & & Mean (ms) & Deviation \\
     print(r'\end{tabular}')
 
 # Show a ton of plots.
-# generate_plots()
+generate_plots()
 
 generate_tables()
 

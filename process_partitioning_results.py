@@ -113,12 +113,15 @@ def get_cdf_plots(measured_size, competitor_size):
             measured_size, competitor_size),
         "%s/measured_%s_vs_4_%s_15_cus.json" % (result_dir,
             measured_size, competitor_size),
+        "%s/measured_%s_vs_4_%s_20_cus.json" % (result_dir,
+            measured_size, competitor_size),
         "%s/measured_%s_vs_4_%s_30_cus.json" % (result_dir,
             measured_size, competitor_size),
     ]
     labels = [
         "Unamanged",
         "Partitioned to 15 CUs",
+        "Partitioned to 20 CUs",
         "Partitioned to 30 CUs",
     ]
     times = []
@@ -154,8 +157,9 @@ def print_table_section(measured_size, competitor_size):
             line += " & "
         line += p + " & "
         content = load_json(filename)
+        max_time = max(content["job_times"])
         line += "%.03f & " % (content["min_job_time"] * 1000.0,)
-        line += "%.03f & " % (content["max_job_time"] * 1000.0,)
+        line += "%.03f & " % (max_time * 1000.0,)
         line += "%.03f & " % (content["mean_job_time"] * 1000.0,)
         line += "%.03f " % (content["job_time_std_dev"] * 1000.0,)
         line += r'\\'
