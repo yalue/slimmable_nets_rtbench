@@ -14,8 +14,10 @@ import importlib
 import json
 import time
 
+kutrace_available = False
 try:
     import kutrace
+    kutrace_available = True
 except ImportError:
     print("KUTrace python module is not available. KUTrace will fail if used.")
 
@@ -93,14 +95,18 @@ def forward_loss(model, input, target, correct_k):
     _, pred = output.topk(max(FLAGS.topk))
     pred = pred.t()
     correct = pred.eq(target.view(1, -1).expand_as(pred))
-    kutrace.mark_c("sync")
+    if kutrace_available:
+        kutrace.mark_c("sync")
     torch.cuda.synchronize()
-    kutrace.mark_c("/sync")
+    if kutrace_available:
+        kutrace.mark_c("/sync")
 
     # Only copy the results up to the max k we care about.
-    kutrace.mark_c("mem")
+    if kutrace_available:
+        kutrace.mark_c("mem")
     correct_cpu = correct[:FLAGS.topk[-1]].to("cpu")
-    kutrace.mark_c("/mem")
+    if kutrace_available:
+        kutrace.mark_c("/mem")
 
     for i in range(len(FLAGS.topk)):
         k = FLAGS.topk[i]
@@ -113,10 +119,8 @@ def single_job(input, target, model, correct_k, args):
     corresponds to the i'th value in FLAGS.topk. Expects the model to be on the
     GPU already. """
     if not args.preload_gpu_memory:
-        # kutrace.mark_c("mem")
-        input = input.cuda()#non_blocking = True)
-        target = target.cuda()#non_blocking = True)
-        # kutrace.mark_c("/mem")
+        input = input.cuda(non_blocking = True)
+        target = target.cuda(non_blocking = True)
     correct = forward_loss(model, input, target, correct_k)
     return None
 
